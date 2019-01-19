@@ -9,7 +9,7 @@ The dashboard's code is designed to be 100% accessible and expandable. To this a
 ![Screenshot slideshow](images/screenshots.gif)
 
 <details>
-    <summary>Click to view some example implementations of FRC Dashboard</summary>
+    <summary>Click to view some examle implementations of FRC Dashboard</summary>
 
 ![1132's 2017 Dashboard](https://i.imgur.com/iSiTxjY.jpg)  
 ![6325's 2017 Dashboard](https://i.redd.it/w9jt1gmbecpy.png)  
