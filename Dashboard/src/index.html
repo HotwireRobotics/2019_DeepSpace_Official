@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html>
+	
+
+<head>
+	<style>
+	<
+h1 {
+    background-color:red;
+	font-color:white;
+	    padding: 35px;
+		font-weight: bold;
+}
+h3 {
+    background-color:gray;
+	    padding: 2px;
+}
+body{
+	padding: 20px;
+}
+
+#camera {
+    padding: 0;
+    bottom: 0;
+    left: 0;
+    width: 320px;
+    height: 240px;
+    overflow: hidden;
+    background-color: #333;
+    background-image: url('http://10.29.90.11:5800/');
+}
+</style>
+
+
+
+    <meta charset="utf-8">
+    <title>FRC Dashboard</title>
+	<link href="css/style.css" rel="stylesheet">
+	<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,400,500">
+	
+	<!-- UIkit CSS -->
+	<link rel="stylesheet" href="css/uikit.min.css" />
+
+	<!-- UIkit JS -->
+	<script src="uikit.min.js"></script>
+	<script src="uikit-icons.min.js"></script>
+	
+	
+	<script>
+	
+	function UpdateNetworkTablesList()
+	{
+		var tablesList = document.getElementById("network-tables-list");
+		tablesList.innerHTML = "";
+		var keyList = NetworkTables.getKeys();
+		for (var i = 0; i < keyList.length; i++) {
+			tablesList.innerHTML += "<li>" + keyList[i] + " \n VALUE= " + NetworkTables.getValue(keyList[i], "DEFAULT") + "</li>";
+		}
+	}
+	
+	
+	</script>
+	<div id="DangerText" > 
+	</div>
+</head>
+
+<body>
+	
+	
+	
+	<div>
+	
+
+ <header>
+        <!-- Tells whether robot is connected to dashboard. -->
+        <!--<div id="robot-state">Unknown state</div>-->
+    </header>
+
+
+	
+		
+
+	
+	</div>
+
+
+<ul class="uk-subnav uk-subnav-pill" uk-switcher>
+    <li><a href="#">Connection Status</a></li>
+    <li><a href="#">Debug</a></li>
+    <li><a href="#">Camera</a></li>
+	<li><a href="#">Network Tables</a></li>
+</ul>
+
+<hr>
+
+<ul class="uk-switcher uk-margin">
+    <li><div id="login">
+        <input id="connect-address" type="text" value="10.29.90.9">
+        <button id="connect" disabled>Connecting</button>
+    </div>
+<script src="networktables/networktables.js"></script>
+    <script src="connection.js"></script>
+    <script src="ui.js"></script>	
+	
+	<li>
+	<div id = "navx_box">
+		<h3> Navx </h3>
+		<h3 id="navx_yaw"> value </h3>
+	</div>
+	</li>
+	
+    
+	<!-- Camera-->
+    <li><div id="camera"></div></li>
+	
+	<!-- Network tables -->
+	<li>
+	<button class="uk-button uk-button-default" onClick="UpdateNetworkTablesList()">Refresh</button>
+	<ul class="uk-list uk-list-striped" id="network-tables-list"><li></li></ul>
+	</li>
+</ul>
+</body>
+
+
+
+</html>

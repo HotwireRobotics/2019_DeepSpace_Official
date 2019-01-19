@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html>
+	
+
+<head>
+	<style>
+
+h1 {
+    background-color:#87CEFA;
+	font-color:white;
+	    padding: 35px;
+		font-weight: bold;
+}
+
+head{
+	 background-color:blue;
+}
+#navx_box{
+	padding: 20px;
+	background-color: #DCDCDC;
+	border: 3px solid red;
+}
+#ultrasonic_box{
+	position: relative;
+	left: 110px;
+	bottom: 172px;
+	padding: 20px;
+	background-color: #DCDCDC;
+	border: 3px solid red;
+}
+#pot_box{
+	position: relative;
+	left: 270px; 
+	bottom: 345px;
+	padding: 20px;
+	background-color: #DCDCDC;
+	border: 3px solid red;
+}
+#nuematic_box{
+	position: relative;
+	left: 400px; 
+	bottom: 518px;
+	padding: 20px;
+	background-color: #DCDCDC;
+	border: 3px solid red;
+}
+#beam_box{
+	position: relative;
+	left: 550px; 
+	bottom: 691px;
+	padding: 20px;
+	background-color: #DCDCDC;
+	border: 3px solid red;
+}
+	</style>
+    <meta charset="utf-8">
+    <title>FRC Dashboard</title>
+	<link href="css/style.css" rel="stylesheet">
+	<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,400,500">
+	
+	<!-- UIkit CSS -->
+	<link rel="stylesheet" href="css/uikit.min.css" />
+
+	<!-- UIkit JS -->
+	<script src="uikit.min.js"></script>
+	<script src="uikit-icons.min.js"></script>
+	<h1> Debug Mode </h1> 
+</head>
+
+<body>
+	
+	<nav class="uk-navbar-container" uk-navbar>
+    <div class="uk-navbar-left">
+        <ul class="uk-navbar-nav">
+            <li class="uk-active"><a href="file:///C:/Users/proff/Desktop/dashboard/Dashboard/src/index.html">Home Page</a></li>
+            <li><a href=""></a></li>
+        </ul>
+		<ul class="uk-navbar-nav">
+            <li class="uk-active"><a href="file:///C:/Users/proff/Desktop/dashboard/Dashboard/src/Debug.html">Debug Mode</a></li>
+            <li><a href=""></a></li>
+        </ul>
+    </div>
+</nav>
+
+<!--Sensors Display-->
+	<!--Navx-->
+	<div id = "navx_box">
+		<h3> Navx </h3>
+		<h3 id="navx_yaw"> value </h3>
+	</div>
+	
+	<!--Ultrasonic-->
+	<div id= "ultrasonic_box">
+		<h3> Ultrasonic </h3>
+		<h3 id = "ultra"> value </h3> 
+	</div>
+	<!--Pot-->
+	<div id = "pot_box">
+		<h3>Pot</h3>
+		<h3 id = "pot"> value </h3>
+	</div>
+	<!--Nuematics-->
+	<div id = "nuematic_box">
+		<h3> Nuematics </h3>
+		<h3 id = "nuematics"> value </h3>
+	</div>
+	<!--Beam Break---->
+	<div id = "beam_box">
+	<h3> Beam Break</h3>
+	<h3 id = "beam_break"> value </h3>
+	</div>
+	
+
+</body>
+
+</html>
