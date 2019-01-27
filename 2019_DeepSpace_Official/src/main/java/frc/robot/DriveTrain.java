@@ -16,10 +16,10 @@ public class DriveTrain implements PIDOutput {
 	PIDController turnController;
 
 	public DriveTrain(int pwm1, int pwm2, int pwm3, int pwm4, AHRS navx){
-		joshmotorcontrollorLeftBottomOne= new JoshMotorControllor(pwm1, lerpSpeed, false);
-		joshmotorcontrollorLeftBottomTwo = new JoshMotorControllor(pwm2, lerpSpeed, false);
-		joshmotorcontrollorRightBottomOne = new JoshMotorControllor(pwm3, lerpSpeed, false);
-		joshmotorcontrollorRightBottomTwo= new JoshMotorControllor(pwm4, lerpSpeed, false);
+		joshmotorcontrollorLeftBottomOne= new JoshMotorControllor(pwm1, lerpSpeed, true);
+		joshmotorcontrollorLeftBottomTwo = new JoshMotorControllor(pwm2, lerpSpeed, true);
+		joshmotorcontrollorRightBottomOne = new JoshMotorControllor(pwm3, lerpSpeed, true);
+		joshmotorcontrollorRightBottomTwo= new JoshMotorControllor(pwm4, lerpSpeed, true);
 		
 		this.navx = navx;
 		turnController = new PIDController(5.00, 1.0, 0.00020, 0, this.navx, this);
@@ -36,18 +36,18 @@ public class DriveTrain implements PIDOutput {
 		joshmotorcontrollorRightBottomTwo.UpdateMotor();
 	}
 	public void SetLeftSpeed(float Speed){
-		joshmotorcontrollorLeftBottomOne.target = -Speed;
-		joshmotorcontrollorLeftBottomTwo.target = -Speed;
-	}
-	public void SetRightSpeed(float Speed){
-		joshmotorcontrollorRightBottomOne.target = Speed;
-		joshmotorcontrollorRightBottomTwo.target = Speed;
-	}
-	public void SetBothSpeed(float Speed){
 		joshmotorcontrollorLeftBottomOne.target = Speed;
 		joshmotorcontrollorLeftBottomTwo.target = Speed;
-		joshmotorcontrollorRightBottomOne.target = Speed;
-		joshmotorcontrollorRightBottomTwo.target = Speed;
+	}
+	public void SetRightSpeed(float Speed){
+		joshmotorcontrollorRightBottomOne.target = -Speed;
+		joshmotorcontrollorRightBottomTwo.target = -Speed;
+	}
+	public void SetBothSpeed(float Speed){
+		joshmotorcontrollorLeftBottomOne.target = -Speed;
+		joshmotorcontrollorLeftBottomTwo.target = -Speed;
+		joshmotorcontrollorRightBottomOne.target = -Speed;
+		joshmotorcontrollorRightBottomTwo.target = -Speed;
 	}
 	public void SetBreak(){
 		joshmotorcontrollorRightBottomOne.SetBrake();

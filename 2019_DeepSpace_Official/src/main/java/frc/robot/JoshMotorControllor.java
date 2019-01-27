@@ -9,7 +9,7 @@ import com.ctre.phoenix.motorcontrol.can.WPI_TalonSRX;
 
 public class JoshMotorControllor {
 	
-	public VictorSP victor; 
+	public VictorSP victor;
 	public TalonSRX talon;
 	public float accelValue;
 	public float target;
