@@ -13,6 +13,62 @@ NetworkTables.addRobotConnectionListener(onRobotConnection, false);
 // Sets function to be called when any NetworkTables key/value changes
 //NetworkTables.addGlobalListener(onValueChanged, true);
 
+function OnWindowLoad () 
+{
+		
+	var data = [];
+    var t = new Date();
+    for (var i = 10; i >= 0; i--) {
+      var x = new Date(t.getTime() - i * 1000);
+      data.push([x, Math.random()]);
+    }
+
+ new Dygraph(
+
+    // containing div
+    document.getElementById("graph_ultrasonic"),
+
+    // CSV or path to a CSV file.
+    "Date,Temperature\n" +
+    "2008-05-07,75\n" +
+    "2008-05-08,70\n" +
+    "2008-05-09,80\n",
+	{ width:1300, height:500 }
+	);
+    
+	
+	
+	/*
+		 new Dygraph(
+            document.getElementById("div_g"),
+				"Date,Temperature\n" +
+				"2008-05-07,75\n" +
+				"2008-05-08,70\n" +
+				"2008-05-09,80\n",
+			{
+              rollPeriod: 7,
+              errorBars: true
+            }
+          );
+		  
+		  
+    var g = new Dygraph(document.getElementById("graph_ultrasonic"), data,
+                        {
+                          drawPoints: true,
+                          showRoller: true,
+                          valueRange: [0.0, 1.2],
+                          labels: ['Time', 'Random']
+                        });
+    // It sucks that these things aren't objects, and we need to store state in window.
+    window.intervalId = setInterval(function() {
+      var x = new Date();  // current time
+      var y = Math.random();
+      data.push([x, y]);
+      g.updateOptions( { 'file': data } );
+    }, 1000);  
+	*/
+}
+	
 // Function for hiding the connect box
 onkeydown = key => {
   if (key.key === 'Escape') {
@@ -49,9 +105,9 @@ function onRobotConnection(connected) {
   }
   
   if (connected) {
-	  document.getElementById('DangerText').innerHTML = '<h1 id="header-disconnected" class="uk-text-bold uk-text-success"> Hotwire Dashboard </h1>';
+	  document.getElementById('ConnectionHeader').innerHTML = '<h1 id="ConnectionHeader" class="uk-text-bold uk-text-success"> Hotwire Dashboard </h1>';
   } else {
-	  document.getElementById('DangerText').innerHTML = '<h1 id="header-disconnected" class="uk-text-bold uk-text-danger"> Hotwire Dashboard </h1>';
+	  document.getElementById('ConnectionHeader').innerHTML = '<h1 id="ConnectionHeader" class="uk-text-bold uk-text-danger"> Hotwire Dashboard </h1>';
   }	
 }
 function setLogin() {
