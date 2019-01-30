@@ -57,16 +57,14 @@ public class Robot extends TimedRobot {
 
 	// PID Controllers
 	public int pdpHandle;
-	public GearRack gearRackFront = new GearRack("Front Gear Rack", 6, 0.01f, 0.0f, 0.0f, 0.0f, 1, pdpHandle, (byte) 6);
-	public GearRack gearRackBackOne = new GearRack("Back Gear Rack One", 4, 0.01f, 0.0f, 0.0f, 0.0f, 1, pdpHandle,
-			(byte) 5);
-	public GearRack gearRackBackTwo = new GearRack("Back Gear Rack Two", 18, 0.01f, 0.0f, 0.0f, 0.0f, -1, pdpHandle,
-			(byte) 4);
+	public GearRack gearRackFront;
+	public GearRack gearRackBackOne;
+	public GearRack gearRackBackTwo;
 
 	// Ramp timer
 	public float timerDelaySeconds = 0.1f;
 
-	public float rampLengthSeconds = 5;
+	public float rampLengthSeconds = 3;
 	public float rampCurrent = 0.0f;
 	public float rampStep;
 
@@ -106,32 +104,36 @@ public class Robot extends TimedRobot {
 		driver = new Joystick(0);
 		operator = new Joystick(1);
 
-		// pdpHandle = PDPJNI.initializePDP(0);
-		// rampCurrent = 0f;
+		pdpHandle = PDPJNI.initializePDP(0);
+		gearRackFront = new GearRack("Front Gear Rack", 6, 0.01f, 0.0f, 0.0f, 0.0f, 1, pdpHandle, (byte) 6, .8f, 0.3f);
+		gearRackBackOne = new GearRack("Back Gear Rack One", 4, 0.01f, 0.0f, 0.0f, 0.0f, 1, pdpHandle, (byte) 5, .6f, 0.05f);
+		gearRackBackTwo = new GearRack("Back Gear Rack Two", 5, 0.01f, 0.0f, 0.0f, 0.0f, -1, pdpHandle, (byte) 4, .6f, 0.05f);
+
+		 rampCurrent = 0f;
+
 	}
 
 	public void teleopPeriodic() {
 
-		// if (pidTimer.get() >= timerDelaySeconds) {
-		// pidTimer.reset();
-		// if (timerTrue) {
-		// if (rampTargetPoint > rampCurrent) {
-		// rampCurrent += rampStep;
-		// if (rampCurrent > rampTargetPoint) {
-		// rampCurrent = rampTargetPoint;
-		// }
-		// } else if (rampTargetPoint < rampCurrent) {
-		// rampCurrent -= rampStep;
-		// if (rampCurrent < rampTargetPoint) {
-		// rampCurrent = rampTargetPoint;
-		// }
-		// }
-		// }
-		// }
-
-		// gearRackFront.Write();
-		// gearRackBackTwo.Write();
-		// gearRackBackOne.Write();
+		// pid ramp timer
+		{
+			if (pidTimer.get() >= timerDelaySeconds) {
+				pidTimer.reset();
+				if (timerTrue) {
+					if (rampTargetPoint > rampCurrent) {
+						rampCurrent += rampStep;
+						if (rampCurrent > rampTargetPoint) {
+							rampCurrent = rampTargetPoint;
+						}
+					} else if (rampTargetPoint < rampCurrent) {
+						rampCurrent -= rampStep;
+						if (rampCurrent < rampTargetPoint) {
+							rampCurrent = rampTargetPoint;
+						}
+					}
+				}
+			}
+		}
 
 		NetworkTable table = NetworkTableInstance.getDefault().getTable("limelight");
 		NetworkTableEntry tx = table.getEntry("tx");
@@ -203,83 +205,60 @@ public class Robot extends TimedRobot {
 
 			driver.setRumble(RumbleType.kLeftRumble, 0);
 			hitTarget = false;
-			ControllerDrive();
+			// ControllerDrive();
 
 			// gearRackBackTwo.UpdateVelocity();
 			// Front Gear Rack 3 1/2 times
 
-			// SmartDashboard.putNumber("Ramp Target", rampTargetPoint);
-			// SmartDashboard.putNumber("Ramp Value", rampCurrent);
+			// Write vales to board
+			gearRackBackOne.Write();
+			gearRackBackTwo.Write();
+			gearRackFront.Write();
+			SmartDashboard.putNumber("Ramp Target", rampTargetPoint);
+			SmartDashboard.putNumber("Ramp Value", rampCurrent);
 
-			// float backMaxOutput = 0.3f;
-			// gearRackBackOne.setOutputRange(0.0f, backMaxOutput);
-			// gearRackBackTwo.setOutputRange(0.0f, backMaxOutput);
 
-			// if (driver.getRawButton(1)) {
+			if (driver.getRawButton(1)) {
 
-			// UpdateRampTarget(67864);
-			// timerTrue = true;
-			// rampRate
+				float topTarget = 67864;
+				UpdateRampTarget(topTarget * 0.9f);
+				timerTrue = true;
 
-			// gearRackBackOne.EnablePID();
-			// gearRackBackOne.setSetpoint(rampCurrent);
-			// gearRackBackTwo.EnablePID();
-			// gearRackBackTwo.setSetpoint(rampCurrent);
+				gearRackBackOne.EnablePID();
+				gearRackBackOne.setSetpoint(rampCurrent);
+				gearRackBackTwo.EnablePID();
+				gearRackBackTwo.setSetpoint(rampCurrent);
+				gearRackFront.EnablePID();
+				gearRackFront.setSetpoint(rampCurrent);
+				
 
-			// } else if (driver.getRawButton(4)) {
-			// UpdateRampTarget(0);
-			// timerTrue = true;
-			// gearRackBackOne.EnablePID();
-			// gearRackBackOne.setSetpoint(rampCurrent);
-			// gearRackBackTwo.EnablePID();
-			// gearRackBackTwo.setSetpoint(rampCurrent);
+				float backMaxOutput = 0.3f;
+				float frontMaxOutput = 0.7f;
+				gearRackBackOne.setOutputRange(0.0f, backMaxOutput);
+				gearRackBackTwo.setOutputRange(0.0f, backMaxOutput);
+				gearRackFront.setOutputRange(0.0f, frontMaxOutput);
 
-			// } else {
-			// timerTrue = false;
-			// gearRackBackTwo.DisablePID();
-			// gearRackBackTwo.DisablePID();
-			// gearRackBackOne.DisablePID();
-			// }
 
-			// if (driver.getRawButton(8)) {
-			// gearRackBackTwo.ResetEncoder();
-			// gearRackBackOne.ResetEncoder();
-			// }
+			} else {
 
-			/*
-			 * if (driver.getRawButton(2)) {
-			 * 
-			 * //gearRackFront.EnablePID();
-			 * 
-			 * if (driver.getRawAxis(2) > 0.5) {
-			 * 
-			 * gearRackBackTwo.setSetpoint(speedTarget);
-			 * 
-			 * // gearRackFront.setOutputRange(0, 1.0); gearRackBackOne.setOutputRange(0,
-			 * 1.0); gearRackBackTwo.setOutputRange(0, 1.0); } else {
-			 * 
-			 * gearRackBackTwo.motor.set(ControlMode.PercentOutput, 0.5f);
-			 * gearRackFront.motor.set(ControlMode.PercentOutput, 0.5f);
-			 * 
-			 * //gearRackFront.setSetpoint(-speedTarget);
-			 * 
-			 * //gearRackFront.setOutputRange(-1, 0); gearRackBackOne.setOutputRange(-1, 0);
-			 * gearRackBackTwo.setOutputRange(-1, 0); } } else {
-			 * //gearRackFront.motor.set(ControlMode.PercentOutput, 0.0f);
-			 * 
-			 * //gearRackFront.DisablePID(); //gearRackBackOne.DisablePID();
-			 * //gearRackBackTwo.DisablePID(); }
-			 */
+				ArmMove(0.0f);
 
-			// if (driver.getRawButton(4)) {
-			// climbTarget = 0;
-			// }
+				timerTrue = false;
+				gearRackFront.DisablePID();
+				gearRackBackTwo.DisablePID();
+				gearRackBackOne.DisablePID();
+			}
 
-			// if (driver.getRawButton(8)) {
-			// gearRackBackOne.ResetEncoder();
-			// gearRackBackTwo.ResetEncoder();
-			// gearRackFront.ResetEncoder();
-			// }
+			if (driver.getRawButton(8)) {
+				gearRackBackOne.ResetEncoder();
+				gearRackBackTwo.ResetEncoder();
+				gearRackFront.ResetEncoder();
+
+				gearRackBackOne.ResetPID();
+				gearRackBackTwo.ResetPID();
+				gearRackFront.ResetPID();
+				rampCurrent = 0f;
+			}
 
 			// Operator Controls
 			// if (operator.getRawButton(4)) {
@@ -290,32 +269,30 @@ public class Robot extends TimedRobot {
 
 			// Intake
 
-			if (operator.getRawButton(1)) {
-				Intake(0.9f);
-			} else {
-				if (operator.getRawButton(4)) {
-					Outtake(0.9f);
-				} else {
-					Outtake(0.0f);
-				}
-			}
+			// if (operator.getRawButton(1)) {
+			// Intake(0.9f);
+			// } else {
+			// if (operator.getRawButton(4)) {
+			// Outtake(0.9f);
+			// } else {
+			// Outtake(0.0f);
+			// }
+			// }
 
-			
+			// // Hatch
 
-			// Hatch
-
-			if (operator.getRawButton(3)) {
-				if (buttonReleased == true) {
-					buttonReleased = false;
-					if (hatchReleased) {
-						HatchHold();
-					} else {
-						HatchRelease();
-					}
-				}
-			} else {
-				buttonReleased = true;
-			}
+			// if (operator.getRawButton(3)) {
+			// if (buttonReleased == true) {
+			// buttonReleased = false;
+			// if (hatchReleased) {
+			// HatchHold();
+			// } else {
+			// HatchRelease();
+			// }
+			// }
+			// } else {
+			// buttonReleased = true;
+			// }
 
 			// Arm
 
@@ -332,16 +309,19 @@ public class Robot extends TimedRobot {
 		debug = new Joystick(3);
 		driver = new Joystick(0);
 		operator = new Joystick(1);
+
+		// gearRackFront = new GearRack("Front Gear Rack", 6, 0.01f, 0.0f, 0.0f, 0.0f, 1, pdpHandle, (byte) 6);
+		// gearRackBackOne = new GearRack("Back Gear Rack One", 4, 0.01f, 0.0f, 0.0f, 0.0f, 1, pdpHandle, (byte) 5);
+		// gearRackBackTwo = new GearRack("Back Gear Rack Two", 5, 0.01f, 0.0f, 0.0f, 0.0f, -1, pdpHandle, (byte) 4);
 	}
 
 	public void testPeriodic() {
 
-		gearRackFront.Write();
-
+	//	gearRackFront.Write();
 		if (driver.getRawButton(2)) {
 			gearRackFront.motor.set(ControlMode.PercentOutput, 0.5f);
-			gearRackBackOne.motor.set(ControlMode.PercentOutput, 0.5f);
-			gearRackBackTwo.motor.set(ControlMode.PercentOutput, 0.5f);
+			//gearRackBackOne.motor.set(ControlMode.PercentOutput, 0.5f);
+			//gearRackBackTwo.motor.set(ControlMode.PercentOutput, 0.5f);
 		} else {
 			gearRackFront.motor.set(ControlMode.PercentOutput, 0.0f);
 			gearRackBackOne.motor.set(ControlMode.PercentOutput, 0.0f);
@@ -414,7 +394,9 @@ public class Robot extends TimedRobot {
 	public void UpdateRampTarget(float newTarget) {
 		if (newTarget != rampTargetPoint) {
 			rampTargetPoint = newTarget;
+			rampCurrent = 0.0f;
 			rampStep = Math.abs(rampCurrent - rampTargetPoint) / (rampLengthSeconds / timerDelaySeconds);
+			
 		}
 	}
 }
