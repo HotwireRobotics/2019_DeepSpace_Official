@@ -116,7 +116,7 @@ function setLogin() {
   address.disabled = connect.disabled = false;
   connect.textContent = 'Connect';
   // Add the default address and select xxxx
-  address.value = '10.29.90.9';
+  address.value = '10.29.90.59';
   address.focus();
   address.setSelectionRange(8, 12);
 }

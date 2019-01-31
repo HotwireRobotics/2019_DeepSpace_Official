@@ -45,10 +45,6 @@ body{
 	<script src="uikit.min.js"></script>
 	<script src="uikit-icons.min.js"></script>
 	
-	<!-- Dygraphs -->
-	<script src="..\node_modules\dygraphs\dist\dygraph.min.js"></script>
-	<link rel="stylesheet" href="..\node_modules\dygraphs\dist\dygraph.min.css" />
-	
 	
 	<script>
 	
@@ -62,13 +58,30 @@ body{
 		}
 	}
 	
-	</script>
 	
-<div id="ConnectionHeader" ></div>
+	</script>
+	<div id="DangerText" > 
+	</div>
 </head>
 
 <body>
 	
+	
+	
+	<div>
+	
+
+ <header>
+        <!-- Tells whether robot is connected to dashboard. -->
+        <!--<div id="robot-state">Unknown state</div>-->
+    </header>
+
+
+	
+		
+
+	
+	</div>
 
 
 <ul class="uk-subnav uk-subnav-pill" uk-switcher>
@@ -76,22 +89,18 @@ body{
     <li><a href="#">Debug</a></li>
     <li><a href="#">Camera</a></li>
 	<li><a href="#">Network Tables</a></li>
-	<li><a href="#">Data Analysis</a></li>
 </ul>
 
 <hr>
 
 <ul class="uk-switcher uk-margin">
     <li><div id="login">
-        <input id="connect-address" type="text" value="10.29.90.9">
+        <input id="connect-address" type="text" value="10.29.90.59">
         <button id="connect" disabled>Connecting</button>
     </div>
-	
-	
-	<script src="networktables/networktables.js"></script>
-	<script src="connection.js"></script>
+<script src="networktables/networktables.js"></script>
+    <script src="connection.js"></script>
     <script src="ui.js"></script>	
-	
 	
 	<li>
 	<div id = "navx_box">
@@ -102,44 +111,16 @@ body{
 	
     
 	<!-- Camera-->
-    <li><div id="camera"></div>
-	</li>
+    <li><div id="camera"></div></li>
 	
 	<!-- Network tables -->
 	<li>
 	<button class="uk-button uk-button-default" onClick="UpdateNetworkTablesList()">Refresh</button>
 	<ul class="uk-list uk-list-striped" id="network-tables-list"><li></li></ul>
 	</li>
-	
-	<!-- Data Analysis -->	
-	<ul uk-accordion="multiple: true">
-    <li>
-        <a class="uk-accordion-title" href="#">Ultrasonic - current value goes here</a>
-        <div class="uk-accordion-content">
-            <div id="graph_ultrasonic"></div>
-			<hr>
-        </div>
-    </li>
-    <li>
-        <a class="uk-accordion-title" href="#">Item 2</a>
-        <div class="uk-accordion-content">
-            <p>Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor reprehenderit.</p>
-			<hr>
-        </div>
-    </li>
-    <li>
-        <a class="uk-accordion-title" href="#">Item 3</a>
-        <div class="uk-accordion-content">
-            <p>Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat proident.</p>
-			<hr>
-        </div>
-    </li>
-	</ul>
 </ul>
 </body>
-	<script>
-	window.onload = OnWindowLoad;
-	</script>
+
 
 
 </html>
