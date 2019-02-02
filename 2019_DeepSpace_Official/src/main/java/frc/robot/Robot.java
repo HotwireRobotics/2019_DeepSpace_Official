@@ -427,7 +427,7 @@ public class Robot extends TimedRobot {
 		// TODO add back the backing up
 
 		driver.setRumble(RumbleType.kLeftRumble, 1);
-		// boolean isPlacing = operator.getRawButton(5);
+		
 		float approachSpeed = 0.45f;
 		float turnSpeed = 0.5f;
 		float buffer = 4.0f;
