@@ -18,6 +18,7 @@ import com.ctre.phoenix.motorcontrol.can.TalonSRX;
 import edu.wpi.first.wpilibj.Ultrasonic;
 import edu.wpi.first.wpilibj.GenericHID.RumbleType;
 import edu.wpi.first.wpilibj.interfaces.Potentiometer;
+import edu.wpi.first.wpilibj.AnalogInput;
 import edu.wpi.first.wpilibj.AnalogPotentiometer;
 import com.kauailabs.navx.frc.AHRS;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
@@ -31,7 +32,9 @@ public class Robot extends TimedRobot {
 
 	// Sensors
 	public AHRS navx = new AHRS(SPI.Port.kMXP);
-	// public Ultrasonic Ultrasonic = new Ultrasonic(0, 1);
+	public Ultrasonic ultrasonic = new Ultrasonic(0, 1);
+	public AnalogPotentiometer pot = new AnalogPotentiometer(0);
+	// public DigitalInput limitSwich = new DigitalInput(9);
 
 	// Drivetrain
 	public JoshMotorControllor badMotor = new JoshMotorControllor(5, 0.8f, false);
@@ -39,6 +42,7 @@ public class Robot extends TimedRobot {
 
 	// neumatics
 	public DoubleSolenoid hatch = new DoubleSolenoid(4, 5);
+	public DoubleSolenoid diskBrake = new DoubleSolenoid(2,3);
 	public boolean buttonReleased;
 	public boolean hatchReleased;
 
@@ -48,8 +52,8 @@ public class Robot extends TimedRobot {
 	public Joystick debug;
 
 	// Arm
-	public TalonSRX armLeft = new TalonSRX(8);
-	public TalonSRX armRight = new TalonSRX(14);
+	public TalonSRX armLeft = new TalonSRX(3);
+	public TalonSRX armRight = new TalonSRX(4);
 
 	// Intake
 
@@ -57,11 +61,14 @@ public class Robot extends TimedRobot {
 
 	// PID Controllers
 	public int pdpHandle;
-	public GearRack gearRackFront = new GearRack("Front Gear Rack", 6, 0.01f, 0.0f, 0.0f, 0.0f, 1, pdpHandle, (byte) 6);
-	public GearRack gearRackBackOne = new GearRack("Back Gear Rack One", 4, 0.01f, 0.0f, 0.0f, 0.0f, 1, pdpHandle,
-			(byte) 5);
-	public GearRack gearRackBackTwo = new GearRack("Back Gear Rack Two", 18, 0.01f, 0.0f, 0.0f, 0.0f, -1, pdpHandle,
-			(byte) 4);
+	public GearRack gearRackFrontOne = new GearRack("Front Gear Rack", 5, 0.01f, 0.0f, 0.0f, 0.0f, 1, pdpHandle,
+			(byte) 6, 4);
+	public GearRack gearRackBackOne = new GearRack("Back Gear Rack One", 7, 0.01f, 0.0f, 0.0f, 0.0f, 1, pdpHandle,
+			(byte) 5, 6);
+	public GearRack gearRackBackTwo = new GearRack("Back Gear Rack Two", 8, 0.01f, 0.0f, 0.0f, 0.0f, -1, pdpHandle,
+			(byte) 4, 7);
+	public GearRack gearRackFrontTwo = new GearRack("Front Gear Rack Two", 6, 0.01f, 0.0f, 0.0f, 0.0f, -1, pdpHandle,
+			(byte) 4, 5);
 
 	// Ramp timer
 	public float timerDelaySeconds = 0.1f;
@@ -101,6 +108,8 @@ public class Robot extends TimedRobot {
 
 	public void teleopInit() {
 
+		ultrasonic.setAutomaticMode(true);
+
 		// Controllers
 		debug = new Joystick(3);
 		driver = new Joystick(0);
@@ -129,7 +138,7 @@ public class Robot extends TimedRobot {
 		// }
 		// }
 
-		// gearRackFront.Write();
+		// gearRackFrontOne.Write();
 		// gearRackBackTwo.Write();
 		// gearRackBackOne.Write();
 
@@ -249,25 +258,25 @@ public class Robot extends TimedRobot {
 			/*
 			 * if (driver.getRawButton(2)) {
 			 * 
-			 * //gearRackFront.EnablePID();
+			 * //gearRackFrontOne.EnablePID();
 			 * 
 			 * if (driver.getRawAxis(2) > 0.5) {
 			 * 
 			 * gearRackBackTwo.setSetpoint(speedTarget);
 			 * 
-			 * // gearRackFront.setOutputRange(0, 1.0); gearRackBackOne.setOutputRange(0,
+			 * // gearRackFrontOne.setOutputRange(0, 1.0); gearRackBackOne.setOutputRange(0,
 			 * 1.0); gearRackBackTwo.setOutputRange(0, 1.0); } else {
 			 * 
 			 * gearRackBackTwo.motor.set(ControlMode.PercentOutput, 0.5f);
-			 * gearRackFront.motor.set(ControlMode.PercentOutput, 0.5f);
+			 * gearRackFrontOne.motor.set(ControlMode.PercentOutput, 0.5f);
 			 * 
-			 * //gearRackFront.setSetpoint(-speedTarget);
+			 * //gearRackFrontOne.setSetpoint(-speedTarget);
 			 * 
-			 * //gearRackFront.setOutputRange(-1, 0); gearRackBackOne.setOutputRange(-1, 0);
-			 * gearRackBackTwo.setOutputRange(-1, 0); } } else {
-			 * //gearRackFront.motor.set(ControlMode.PercentOutput, 0.0f);
+			 * //gearRackFrontOne.setOutputRange(-1, 0); gearRackBackOne.setOutputRange(-1,
+			 * 0); gearRackBackTwo.setOutputRange(-1, 0); } } else {
+			 * //gearRackFrontOne.motor.set(ControlMode.PercentOutput, 0.0f);
 			 * 
-			 * //gearRackFront.DisablePID(); //gearRackBackOne.DisablePID();
+			 * //gearRackFrontOne.DisablePID(); //gearRackBackOne.DisablePID();
 			 * //gearRackBackTwo.DisablePID(); }
 			 */
 
@@ -278,7 +287,7 @@ public class Robot extends TimedRobot {
 			// if (driver.getRawButton(8)) {
 			// gearRackBackOne.ResetEncoder();
 			// gearRackBackTwo.ResetEncoder();
-			// gearRackFront.ResetEncoder();
+			// gearRackFrontOne.ResetEncoder();
 			// }
 
 			// Operator Controls
@@ -300,7 +309,21 @@ public class Robot extends TimedRobot {
 				}
 			}
 
-			
+			if(operator.getRawButton(7)){
+				diskBrake.set(DoubleSolenoid.Value.kForward);
+			}else{
+				diskBrake.set(DoubleSolenoid.Value.kReverse);
+			}
+
+			// System.out.println("Ultrasonic "+ ultrasonic.getRangeInches());
+
+			System.out.println("Pot:"  + pot.get());
+
+			SmartDashboard.putNumber("ultrasonic_down", ultrasonic.getRangeInches());
+
+			// System.out.println(switchOne.get());
+			// SmartDashboard.putNumber("navx_value", navx.getYaw());
+			// SmartDashboard.putNumber("pot_value", );
 
 			// Hatch
 
@@ -318,12 +341,13 @@ public class Robot extends TimedRobot {
 			}
 
 			// Arm
-
-			// if (operator.getRawButton(2)) {
-			// ArmMove(0.4f);
-			// }
+			if (operator.getRawButton(2)) {
+			 ArmMove(0.4f);
+			 }else{
+			ArmMove(0.0f);
+			 }
 		}
-
+			
 		UpdateMotors();
 	}
 
@@ -336,14 +360,16 @@ public class Robot extends TimedRobot {
 
 	public void testPeriodic() {
 
-		gearRackFront.Write();
+		gearRackFrontOne.Write();
 
 		if (driver.getRawButton(2)) {
-			gearRackFront.motor.set(ControlMode.PercentOutput, 0.5f);
+			gearRackFrontOne.motor.set(ControlMode.PercentOutput, 0.5f);
+			gearRackFrontTwo.motor.set(ControlMode.PercentOutput, 0.5f);
 			gearRackBackOne.motor.set(ControlMode.PercentOutput, 0.5f);
 			gearRackBackTwo.motor.set(ControlMode.PercentOutput, 0.5f);
 		} else {
-			gearRackFront.motor.set(ControlMode.PercentOutput, 0.0f);
+			gearRackFrontOne.motor.set(ControlMode.PercentOutput, 0.0f);
+			gearRackFrontTwo.motor.set(ControlMode.PercentOutput, 0.0f);
 			gearRackBackOne.motor.set(ControlMode.PercentOutput, 0.0f);
 			gearRackBackTwo.motor.set(ControlMode.PercentOutput, 0.0f);
 		}
