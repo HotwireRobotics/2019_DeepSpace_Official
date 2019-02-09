@@ -152,6 +152,8 @@ public class Robot extends TimedRobot {
 			float approachtarget = 2.1f;
 			float reverseSpeed = -0.5f;
 
+			potTarget = hatchTarget;
+
 			if (!hitTarget) {
 				if (x >= buffer) {
 
@@ -203,7 +205,6 @@ public class Robot extends TimedRobot {
 			hitTarget = false;
 			ControllerDrive();
 
-
 			// Intake
 			if (operator.getRawButton(1)) {
 				Intake(0.9f);
@@ -242,17 +243,14 @@ public class Robot extends TimedRobot {
 			if (pot.get() > potTarget + currentBuffer) {
 				DiskBrakeDisable();
 				ArmMove(0.45f);
-				System.out.println("up");
+
 			} else if (pot.get() < potTarget - currentBuffer) {
 				DiskBrakeDisable();
-				
 				ArmMove(downForce);
-				System.out.println("down");
 
 			} else {
 				DiskBrakeEnable();
 				ArmMove(0);
-				System.out.println("stop");
 				float bufferGrowth = 1.2f;
 				currentBuffer = currentBuffer * bufferGrowth;
 			}
@@ -336,15 +334,11 @@ public class Robot extends TimedRobot {
 		armRight.set(ControlMode.PercentOutput, -speeed);
 	}
 
-	public void Climb() {
-
-	}
-
 	public void DrivetrainBrakes(boolean brakes) {
 		if (brakes = true) {
-			// driveTrain.SetBreak();
+			driveTrain.SetBreak();
 		} else {
-			// driveTrain.SetCoast();
+			driveTrain.SetCoast();
 		}
 	}
 
@@ -357,11 +351,9 @@ public class Robot extends TimedRobot {
 
 	public void DiskBrakeEnable() {
 		diskBrake.set(DoubleSolenoid.Value.kForward);
-
 	}
 
 	public void DiskBrakeDisable() {
 		diskBrake.set(DoubleSolenoid.Value.kReverse);
-
 	}
 }
