@@ -8,23 +8,19 @@ import frc.robot.DriveTrain;
 public class NavxReset extends AutoStep {
 
     public AHRS navx;
-    public Timer resetTimer;
     public float resetTimeLengthSeconds;
 
-    public NavxReset(DriveTrain driveTrain, AHRS navx, float resetTimeLengthSeconds) {
+    public NavxReset(DriveTrain driveTrain, AHRS navx) {
         super(driveTrain);
         this.navx = navx;
-        this.resetTimeLengthSeconds = resetTimeLengthSeconds;
     }
 
     public void Begin() {
         navx.reset();
-        resetTimer.reset();
-        resetTimer.start();
     }
 
     public void Update() {
-        if (resetTimer.get() > resetTimeLengthSeconds) {
+        if (navx.getYaw() == 0.0) {
             isDone = true;
         }
     }
