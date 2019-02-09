@@ -58,9 +58,12 @@ public class Robot extends TimedRobot {
 	public boolean povReleased = false;
 	public double potTarget = 0;
 	public double currentBuffer;
-
-	public double groundTarget = 0.83;
+	public double groundTarget = 0.8678;
 	public double shipTarget = 0.67;
+	public double rocketTarget = 0.78;
+	public double hatchTarget = 0.84;
+	public float downForce = 0.0f;
+	//TODO
 
 	// Intake
 
@@ -117,40 +120,15 @@ public class Robot extends TimedRobot {
 
 		ultrasonic.setAutomaticMode(true);
 
-		potTarget = groundTarget;
+		potTarget = pot.get();
 
 		// Controllers
 		debug = new Joystick(3);
 		driver = new Joystick(0);
 		operator = new Joystick(1);
-
-		// pdpHandle = PDPJNI.initializePDP(0);
-		// rampCurrent = 0f;
-
 	}
 
 	public void teleopPeriodic() {
-
-		// if (pidTimer.get() >= timerDelaySeconds) {
-		// pidTimer.reset();
-		// if (timerTrue) {
-		// if (rampTargetPoint > rampCurrent) {
-		// rampCurrent += rampStep;
-		// if (rampCurrent > rampTargetPoint) {
-		// rampCurrent = rampTargetPoint;
-		// }
-		// } else if (rampTargetPoint < rampCurrent) {
-		// rampCurrent -= rampStep;
-		// if (rampCurrent < rampTargetPoint) {
-		// rampCurrent = rampTargetPoint;
-		// }
-		// }
-		// }
-		// }
-
-		// gearRackFrontOne.Write();
-		// gearRackBackTwo.Write();
-		// gearRackBackOne.Write();
 
 		NetworkTable table = NetworkTableInstance.getDefault().getTable("limelight");
 		NetworkTableEntry tx = table.getEntry("tx");
@@ -163,8 +141,9 @@ public class Robot extends TimedRobot {
 
 		// Driver Controls
 
+		// Limelight
 		if (operator.getRawButton(5) || operator.getRawButton(6)) {
-			// TODO
+
 			driver.setRumble(RumbleType.kLeftRumble, 1);
 			boolean isPlacing = operator.getRawButton(5);
 			float approachSpeed = 0.45f;
@@ -224,91 +203,8 @@ public class Robot extends TimedRobot {
 			hitTarget = false;
 			ControllerDrive();
 
-			// gearRackBackTwo.UpdateVelocity();
-			// Front Gear Rack 3 1/2 times
-
-			// SmartDashboard.putNumber("Ramp Target", rampTargetPoint);
-			// SmartDashboard.putNumber("Ramp Value", rampCurrent);
-
-			// float backMaxOutput = 0.3f;
-			// gearRackBackOne.setOutputRange(0.0f, backMaxOutput);
-			// gearRackBackTwo.setOutputRange(0.0f, backMaxOutput);
-
-			// if (driver.getRawButton(1)) {
-
-			// UpdateRampTarget(67864);
-			// timerTrue = true;
-			// rampRate
-
-			// gearRackBackOne.EnablePID();
-			// gearRackBackOne.setSetpoint(rampCurrent);
-			// gearRackBackTwo.EnablePID();
-			// gearRackBackTwo.setSetpoint(rampCurrent);
-
-			// } else if (driver.getRawButton(4)) {
-			// UpdateRampTarget(0);
-			// timerTrue = true;
-			// gearRackBackOne.EnablePID();
-			// gearRackBackOne.setSetpoint(rampCurrent);
-			// gearRackBackTwo.EnablePID();
-			// gearRackBackTwo.setSetpoint(rampCurrent);
-
-			// } else {
-			// timerTrue = false;
-			// gearRackBackTwo.DisablePID();
-			// gearRackBackTwo.DisablePID();
-			// gearRackBackOne.DisablePID();
-			// }
-
-			// if (driver.getRawButton(8)) {
-			// gearRackBackTwo.ResetEncoder();
-			// gearRackBackOne.ResetEncoder();
-			// }
-
-			/*
-			 * if (driver.getRawButton(2)) {
-			 * 
-			 * //gearRackFrontOne.EnablePID();
-			 * 
-			 * if (driver.getRawAxis(2) > 0.5) {
-			 * 
-			 * gearRackBackTwo.setSetpoint(speedTarget);
-			 * 
-			 * // gearRackFrontOne.setOutputRange(0, 1.0); gearRackBackOne.setOutputRange(0,
-			 * 1.0); gearRackBackTwo.setOutputRange(0, 1.0); } else {
-			 * 
-			 * gearRackBackTwo.motor.set(ControlMode.PercentOutput, 0.5f);
-			 * gearRackFrontOne.motor.set(ControlMode.PercentOutput, 0.5f);
-			 * 
-			 * //gearRackFrontOne.setSetpoint(-speedTarget);
-			 * 
-			 * //gearRackFrontOne.setOutputRange(-1, 0); gearRackBackOne.setOutputRange(-1,
-			 * 0); gearRackBackTwo.setOutputRange(-1, 0); } } else {
-			 * //gearRackFrontOne.motor.set(ControlMode.PercentOutput, 0.0f);
-			 * 
-			 * //gearRackFrontOne.DisablePID(); //gearRackBackOne.DisablePID();
-			 * //gearRackBackTwo.DisablePID(); }
-			 */
-
-			// if (driver.getRawButton(4)) {
-			// climbTarget = 0;
-			// }
-
-			// if (driver.getRawButton(8)) {
-			// gearRackBackOne.ResetEncoder();
-			// gearRackBackTwo.ResetEncoder();
-			// gearRackFrontOne.ResetEncoder();
-			// }
-
-			// Operator Controls
-			// if (operator.getRawButton(4)) {
-			// Climb(0.4f);
-			// } else if (operator.getRawButton(1)) {
-			// Climb(-0.4f);
-			// }
 
 			// Intake
-
 			if (operator.getRawButton(1)) {
 				Intake(0.9f);
 			} else {
@@ -319,41 +215,38 @@ public class Robot extends TimedRobot {
 				}
 			}
 
-			// if (operator.getRawButton(7)) {
-			// DiskBrakeDisable();
-			// } else {
-			// DiskBrakeEnable();
-
-			// }
-			double potCurrent = pot.get();
-			// double rocketMiddleTarget =
+			// Arm Targets
 			if (povReleased == true && operator.getPOV() != -1) {
 				povReleased = false;
 				armHold = false;
 				DiskBrakeDisable();
 
-				currentBuffer = 0.003;
+				currentBuffer = 0.005;
 				if (operator.getPOV() == 0) {
 
 				} else if (operator.getPOV() == 180) {
 					potTarget = groundTarget;
+					downForce = 0.1f;
 				} else if (operator.getPOV() == 90) {
 					potTarget = shipTarget;
+					downForce = 0.0f;
+				} else if(operator.getPOV() == 270){
+					potTarget = hatchTarget;
+					downForce = 0.075f;
 				}
 			}
 			if (operator.getPOV() == -1) {
 				povReleased = true;
 			}
 
-			// if (armHold == false) {
-			// double armBuffer = 0.005;
-			if (potCurrent > potTarget + currentBuffer) {
+			if (pot.get() > potTarget + currentBuffer) {
 				DiskBrakeDisable();
 				ArmMove(0.45f);
 				System.out.println("up");
-			} else if (potCurrent < potTarget - currentBuffer) {
+			} else if (pot.get() < potTarget - currentBuffer) {
 				DiskBrakeDisable();
-				ArmMove(0.075f);
+				
+				ArmMove(downForce);
 				System.out.println("down");
 
 			} else {
@@ -364,25 +257,8 @@ public class Robot extends TimedRobot {
 				currentBuffer = currentBuffer * bufferGrowth;
 			}
 			
-			// }
-
-			// if (armHold == true) {
-			// DiskBrakeEnable();
-			// ArmMove(0);
-			// }
-
-			// System.out.println("Ultrasonic "+ ultrasonic.getRangeInches());
-
-			System.out.println("Pot:" + pot.get());
-
-			SmartDashboard.putNumber("ultrasonic_down", ultrasonic.getRangeInches());
-
-			// System.out.println(switchOne.get());
-			// SmartDashboard.putNumber("navx_value", navx.getYaw());
-			// SmartDashboard.putNumber("pot_value", );
 
 			// Hatch
-
 			if (operator.getRawButton(3)) {
 				if (buttonReleased == true) {
 					buttonReleased = false;
@@ -395,13 +271,6 @@ public class Robot extends TimedRobot {
 			} else {
 				buttonReleased = true;
 			}
-
-			// Arm
-			// if (operator.getRawButton(2)) {
-			// ArmMove(0.4f);
-			// } else {
-			// ArmMove(0.0f);
-			// }
 		}
 
 		UpdateMotors();
@@ -412,10 +281,12 @@ public class Robot extends TimedRobot {
 		debug = new Joystick(3);
 		driver = new Joystick(0);
 		operator = new Joystick(1);
+		DiskBrakeDisable();
 	}
 
 	public void testPeriodic() {
 
+		System.out.println(pot.get());
 		ControllerDrive();
 		UpdateMotors();
 	}
