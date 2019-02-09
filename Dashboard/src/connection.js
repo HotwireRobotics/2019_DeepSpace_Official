@@ -4,111 +4,125 @@ let address = document.getElementById('connect-address'),
 
 let loginShown = true;
 
-// Set function to be called on NetworkTables connect. Not implemented.
-//NetworkTables.addWsConnectionListener(onNetworkTablesConnection, true);
+// Hot Graph
+class HotGraph {
 
-// Set function to be called when robot dis/connects
-NetworkTables.addRobotConnectionListener(onRobotConnection, false);
+  constructor(divName, pointsCount) {
 
-// Sets function to be called when any NetworkTables key/value changes
-//NetworkTables.addGlobalListener(onValueChanged, true);
+    this.pointsCount = pointsCount;
+    this.data = [];
+    this.data.push([new Date(), 0]);
 
-function OnWindowLoad () 
-{
-		
-	var data = [];
-    var t = new Date();
-    for (var i = 10; i >= 0; i--) {
-      var x = new Date(t.getTime() - i * 1000);
-      data.push([x, Math.random()]);
+    this.graph = new Dygraph(
+
+      // containing div
+      document.getElementById(divName),
+      this.data,
+      { labels: ['Time', 'Value'], width: 900, height: 450 }
+    );
+  }
+
+  PutValue(newValue) {
+    var x = new Date();  // current time
+    var y = newValue;
+    this.data.push([x, y]);
+    if (this.data.length > this.pointsCount) {
+      this.data.splice(0, 1);  
     }
 
- new Dygraph(
-
-    // containing div
-    document.getElementById("graph_ultrasonic"),
-
-    // CSV or path to a CSV file.
-    "Date,Temperature\n" +
-    "2008-05-07,75\n" +
-    "2008-05-08,70\n" +
-    "2008-05-09,80\n",
-	{ width:1300, height:500 }
-	);
-    
-	
-	
-	/*
-		 new Dygraph(
-            document.getElementById("div_g"),
-				"Date,Temperature\n" +
-				"2008-05-07,75\n" +
-				"2008-05-08,70\n" +
-				"2008-05-09,80\n",
-			{
-              rollPeriod: 7,
-              errorBars: true
-            }
-          );
-		  
-		  
-    var g = new Dygraph(document.getElementById("graph_ultrasonic"), data,
-                        {
-                          drawPoints: true,
-                          showRoller: true,
-                          valueRange: [0.0, 1.2],
-                          labels: ['Time', 'Random']
-                        });
-    // It sucks that these things aren't objects, and we need to store state in window.
-    window.intervalId = setInterval(function() {
-      var x = new Date();  // current time
-      var y = Math.random();
-      data.push([x, y]);
-      g.updateOptions( { 'file': data } );
-    }, 1000);  
-	*/
+    this.graph.updateOptions({ 'file': this.data });
+  }
 }
-	
+// ----------
+
+let ultrasonic_down_update = (key, variableName) => {
+  ultrasonicDown.PutValue(variableName);
+}
+let front_encoder_update_two = (key, variableName) => {
+  gearRackFrontTwo.PutValue(variableName);
+}
+let back_encoder_update_one = (key, variableName) => {
+  gearRackBackOne.PutValue(variableName);
+}
+let back_encoder_update_two = (key, variableName) => {
+  gearRackBackTwo.PutValue(variableName);
+}
+let front_encoder_update_one = (key, variableName) => {
+  gearRackFrontOne.PutValue(variableName);
+}
+let gearRackFrontOneLimit = (key, variableName) => {
+  document.getElementById('gearRackFrontOneLimit').innerHTML = variableName;
+}
+let gearRackFrontTwoLimit = (key, variableName) => {
+  document.getElementById('gearRackFrontTwoLimit').innerHTML = variableName;
+}
+let gearRackBackOneLimit = (key, variableName) => {
+  document.getElementById('gearRackBackOneLimit').innerHTML = variableName;
+}
+let gearRackBackTwoLimit = (key, variableName) => {
+  document.getElementById('gearRackBackTwoLimit').innerHTML = variableName;
+}
+// Set function to be called when robot dis/connects
+NetworkTables.addRobotConnectionListener(onRobotConnection, false);
+NetworkTables.addKeyListener('/SmartDashboard/ultrasonic_front', ultrasonic_down_update);
+NetworkTables.addKeyListener('/SmartDashboard/Front Gear Rack raw encoder ', front_encoder_update_one);
+NetworkTables.addKeyListener('/SmartDashboard/Back Gear Rack One raw encoder ', back_encoder_update_one);
+NetworkTables.addKeyListener('/SmartDashboard/Front Gear Rack Two raw encoder ', front_encoder_update_two);
+NetworkTables.addKeyListener('/SmartDashboard/Back Gear Rack Two raw encoder ', back_encoder_update_two);
+NetworkTables.addKeyListener('/SmartDashboard/Front Gear Rack Limit Switch', gearRackFrontOneLimit);
+NetworkTables.addKeyListener('/SmartDashboard/Front Gear Rack Two Limit Switch', gearRackFrontTwoLimit);
+NetworkTables.addKeyListener('/SmartDashboard/Back Gear Rack One Limit Switch', gearRackBackOneLimit);
+NetworkTables.addKeyListener('/SmartDashboard/Back Gear Rack Two Limit Switch', gearRackBackTwoLimit);
+
+let ultrasonicDown;
+let gearRackFrontOne;
+let gearRackFrontTwo;
+let gearRackBackOne;
+let gearRackBackTwo;
+
+function OnWindowLoad() {
+  ultrasonicDown = new HotGraph("ultrasonic_down", 300);
+  gearRackFrontOne = new HotGraph("gear_rack_one_encoder", 300);
+  gearRackFrontTwo = new HotGraph("gear_rack_two_encoder", 300);
+  gearRackBackOne = new HotGraph("gear_rack_three_encoder", 300);
+  gearRackBackTwo = new HotGraph("gear_rack_four_encoder", 300);
+}
+
 // Function for hiding the connect box
 onkeydown = key => {
   if (key.key === 'Escape') {
-    document.body.classList.toggle('login', false);
-    loginShown = false;
+    ultrasonicFront.PutValue(Math.random());
   }
 };
 
-/**
- * Function to be called when robot c
- onnects
- * @param {boolean} connected
- */
+// Called when the robot connects
 function onRobotConnection(connected) {
   var state = connected ? 'Robot connected!' : 'Robot disconnected.';
   console.log(state);
   //ui.robotState.textContent = state;
 
-  
+
   /*
   buttonConnect.onclick = () => {
     //document.body.classList.toggle('login', true);
     loginShown = true;
   };
   */
-  
+
   if (connected) {
     // On connect hide the connect popup
     //document.body.classList.toggle('login', false);
-	
+
     loginShown = false;
   } else if (loginShown) {
     setLogin();
   }
-  
+
   if (connected) {
-	  document.getElementById('ConnectionHeader').innerHTML = '<h1 id="ConnectionHeader" class="uk-text-bold uk-text-success"> Hotwire Dashboard </h1>';
+    document.getElementById('ConnectionHeader').innerHTML = '<h1 id="ConnectionHeader" class="uk-text-bold uk-text-success"> Hotwire Dashboard </h1>';
   } else {
-	  document.getElementById('ConnectionHeader').innerHTML = '<h1 id="ConnectionHeader" class="uk-text-bold uk-text-danger"> Hotwire Dashboard </h1>';
-  }	
+    document.getElementById('ConnectionHeader').innerHTML = '<h1 id="ConnectionHeader" class="uk-text-bold uk-text-danger"> Hotwire Dashboard </h1>';
+  }
 }
 function setLogin() {
   // Add Enter key handler

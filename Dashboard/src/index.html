@@ -1,11 +1,11 @@
 <!DOCTYPE html>
 <html>
-	
+
 
 <head>
 	<style>
-	<
-h1 {
+
+		h1 {
     background-color:red;
 	font-color:white;
 	    padding: 35px;
@@ -33,94 +33,158 @@ body{
 
 
 
-    <meta charset="utf-8">
-    <title>FRC Dashboard</title>
+	<meta charset="utf-8">
+	<title>FRC Dashboard</title>
 	<link href="css/style.css" rel="stylesheet">
 	<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,400,500">
-	
+
 	<!-- UIkit CSS -->
 	<link rel="stylesheet" href="css/uikit.min.css" />
 
 	<!-- UIkit JS -->
 	<script src="uikit.min.js"></script>
 	<script src="uikit-icons.min.js"></script>
-	
-	
+
+	<!-- Dygraphs -->
+	<script src="..\node_modules\dygraphs\dist\dygraph.min.js"></script>
+	<link rel="stylesheet" href="..\node_modules\dygraphs\dist\dygraph.min.css" />
+
+
 	<script>
-	
-	function UpdateNetworkTablesList()
-	{
-		var tablesList = document.getElementById("network-tables-list");
-		tablesList.innerHTML = "";
-		var keyList = NetworkTables.getKeys();
-		for (var i = 0; i < keyList.length; i++) {
-			tablesList.innerHTML += "<li>" + keyList[i] + " \n VALUE= " + NetworkTables.getValue(keyList[i], "DEFAULT") + "</li>";
+
+		function UpdateNetworkTablesList() {
+			var tablesList = document.getElementById("network-tables-list");
+			tablesList.innerHTML = "";
+			var keyList = NetworkTables.getKeys();
+			for (var i = 0; i < keyList.length; i++) {
+				tablesList.innerHTML += "<li>" + keyList[i] + " \n VALUE= " + NetworkTables.getValue(keyList[i], "DEFAULT") + "</li>";
+			}
 		}
-	}
-	
-	
+
 	</script>
-	<div id="DangerText" > 
-	</div>
+
+	<div id="ConnectionHeader"></div>
 </head>
 
 <body>
-	
-	
-	
-	<div>
-	
-
- <header>
-        <!-- Tells whether robot is connected to dashboard. -->
-        <!--<div id="robot-state">Unknown state</div>-->
-    </header>
 
 
-	
-		
 
-	
-	</div>
+	<ul class="uk-subnav uk-subnav-pill" uk-switcher>
+		<li><a href="#">Connection Status</a></li>
+		<li><a href="#">Debug</a></li>
+		<li><a href="#">Camera</a></li>
+		<li><a href="#">Network Tables</a></li>
+		<li><a href="#">Data Analysis</a></li>
+	</ul>
+
+	<hr>
+
+	<ul class="uk-switcher uk-margin">
+		<li>
+			<div id="login">
+				<input id="connect-address" type="text" value="10.29.90.9">
+				<button id="connect" disabled>Connecting</button>
+			</div>
 
 
-<ul class="uk-subnav uk-subnav-pill" uk-switcher>
-    <li><a href="#">Connection Status</a></li>
-    <li><a href="#">Debug</a></li>
-    <li><a href="#">Camera</a></li>
-	<li><a href="#">Network Tables</a></li>
-</ul>
+			<script src="networktables/networktables.js"></script>
+			<script src="connection.js"></script>
+			<script src="ui.js"></script>
 
-<hr>
 
-<ul class="uk-switcher uk-margin">
-    <li><div id="login">
-        <input id="connect-address" type="text" value="10.29.90.59">
-        <button id="connect" disabled>Connecting</button>
-    </div>
-<script src="networktables/networktables.js"></script>
-    <script src="connection.js"></script>
-    <script src="ui.js"></script>	
-	
-	<li>
-	<div id = "navx_box">
-		<h3> Navx </h3>
-		<h3 id="navx_yaw"> value </h3>
-	</div>
-	</li>
-	
-    
-	<!-- Camera-->
-    <li><div id="camera"></div></li>
-	
-	<!-- Network tables -->
-	<li>
-	<button class="uk-button uk-button-default" onClick="UpdateNetworkTablesList()">Refresh</button>
-	<ul class="uk-list uk-list-striped" id="network-tables-list"><li></li></ul>
-	</li>
-</ul>
+		<li>
+			<div id="navx_box">
+				<h3> Navx </h3>
+				<h3 id="navx_yaw"> value </h3>
+			</div>
+		</li>
+
+
+		<!-- Camera-->
+		<li>
+			<div id="camera"></div>
+		</li>
+
+		<!-- Network tables -->
+		<li>
+			<button class="uk-button uk-button-default" onClick="UpdateNetworkTablesList()">Refresh</button>
+			<ul class="uk-list uk-list-striped" id="network-tables-list">
+				<li></li>
+			</ul>
+		</li>
+
+		<!-- Data Analysis -->
+		<ul uk-accordion="multiple: true">
+			<li>
+				<a class="uk-accordion-title" href="#">Ultrasonic Down</a>
+				<div class="uk-accordion-content">
+					<div id="ultrasonic_down"></div>
+					<hr>
+				</div>
+			</li>
+			<li>
+				<a class="uk-accordion-title" href="#">Gear Rack Front One Encoder</a>
+				<div class="uk-accordion-content">
+					<div id="gear_rack_one_encoder"></div>
+					<hr>
+				</div>
+			</li>
+			<li>
+				<a class="uk-accordion-title" href="#">Gear Rack Front Two Encoder</a>
+				<div class="uk-accordion-content">
+					<div id="gear_rack_two_encoder"></div>
+					<hr>
+				</div>
+			</li>
+			<li>
+				<a class="uk-accordion-title" href="#">Gear Rack Back One Encoder</a>
+				<div class="uk-accordion-content">
+					<div id="gear_rack_three_encoder"></div>
+					<hr>
+				</div>
+			</li>
+			<li>
+				<a class="uk-accordion-title" href="#">Gear Rack Back Two Encoder</a>
+				<div class="uk-accordion-content">
+					<div id="gear_rack_four_encoder"></div>
+					<hr>
+				</div>
+			</li>
+			<li>
+				<a class="uk-accordion-title" href="#">Gear Rack Front One Limit</a>
+				<div class="uk-accordion-content">
+					<div id="gearRackFrontOneLimit"></div>
+					<hr>
+				</div>
+			</li>
+			<li>
+				<a class="uk-accordion-title" href="#">Gear Rack Front Two Limit</a>
+				<div class="uk-accordion-content">
+					<div id="gearRackFrontTwoLimit"></div>
+					<hr>
+				</div>
+			</li>
+			<li>
+				<a class="uk-accordion-title" href="#">Gear Rack Back One Limit</a>
+				<div class="uk-accordion-content">
+					<div id="gearRackBackOneLimit"></div>
+					<hr>
+				</div>
+			</li>
+			<li>
+				<a class="uk-accordion-title" href="#">Gear Rack Back Two Limit</a>
+				<div class="uk-accordion-content">
+					<div id="gearRackBackTwoLimit"></div>
+					<hr>
+				</div>
+			</li>
+		</ul>
+	</ul>
 </body>
-
+<script>
+	window.onload = OnWindowLoad;
+</script>
 
 
 </html>

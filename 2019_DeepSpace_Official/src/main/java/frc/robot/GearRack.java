@@ -1,20 +1,22 @@
 package frc.robot;
+
 import edu.wpi.first.hal.PDPJNI;
 import edu.wpi.first.wpilibj.VictorSP;
 import edu.wpi.first.wpilibj.command.PIDSubsystem;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj.PIDController;
-
+import edu.wpi.first.wpilibj.DigitalInput;
 import com.ctre.phoenix.motorcontrol.*;
 import com.ctre.phoenix.motorcontrol.can.TalonSRX;
 import com.ctre.phoenix.motorcontrol.can.WPI_TalonSRX;
 
 public class GearRack extends PIDSubsystem {
 
+    public DigitalInput limitSwitch;
     public TalonSRX motor;
-    
+
     public long encoderZero;
-   
+
     public String name;
     public float p;
     public float i;
@@ -26,8 +28,8 @@ public class GearRack extends PIDSubsystem {
 
     private boolean isEnabled;
 
-
-    public GearRack(String name, int motorId, float p, float i, float d, float f, int direction, int pdpHandle, byte pdpChannel) {
+    public GearRack(String name, int motorId, float p, float i, float d, float f, int direction, int pdpHandle,
+            byte pdpChannel, int switchID) {
         super(name, p, i, d, f);
 
         this.name = name;
@@ -38,7 +40,7 @@ public class GearRack extends PIDSubsystem {
         this.direction = direction;
         this.pdpHandle = pdpHandle;
         this.pdpChannel = pdpChannel;
-
+        limitSwitch = new DigitalInput(switchID);
         motor = new TalonSRX(motorId);
     }
 
@@ -53,13 +55,12 @@ public class GearRack extends PIDSubsystem {
     }
 
     // Use the pid output, send it to the motor
-    public void usePIDOutput(double output) {   
-        motor.set(ControlMode.PercentOutput, output * direction);
-        // SmartDashboard.putNumber(name + " PID Output", output * direction);
+    public void usePIDOutput(double output) {
+        SetMotorSpeed(output);
     }
 
     public void Write() {
-        //double current = PDPJNI.getPDPChannelCurrent((byte)5, pdpHandle);
+        // double current = PDPJNI.getPDPChannelCurrent((byte)5, pdpHandle);
         p = (float) SmartDashboard.getNumber(name + "P", p);
         i = (float) SmartDashboard.getNumber(name + "I", i);
         d = (float) SmartDashboard.getNumber(name + "D", d);
@@ -68,16 +69,15 @@ public class GearRack extends PIDSubsystem {
         SmartDashboard.putNumber(name + "I", i);
         SmartDashboard.putNumber(name + "D", d);
         SmartDashboard.putNumber(name + "F", f);
-        //SmartDashboard.putNumber(name, GetEncoderPosition());
-        SmartDashboard.putNumber(name + " Output", (float)motor.getMotorOutputPercent());
-        //SmartDashboard.putNumber(name + " TEST", 0.5);
+        // SmartDashboard.putNumber(name, GetEncoderPosition());
+        SmartDashboard.putNumber(name + " Output", (float) motor.getMotorOutputPercent());
+        // SmartDashboard.putNumber(name + " TEST", 0.5);
         SmartDashboard.putNumber(name + " raw encoder ", GetEncoderPosition());
-        //SmartDashboard.putNumber(name + " Speed ", motor.getSelectedSensorVelocity());
+        // SmartDashboard.putNumber(name + " Speed ",
+        // motor.getSelectedSensorVelocity());
+        SmartDashboard.putBoolean("Limit Switch", limitSwitch.get());
+        // SmartDashboard.putNumber(name + "Current", current);
         
-        //SmartDashboard.putNumber(name + "Current", current);
-        
-        
-
         PIDController controller = getPIDController();
         controller.setP(p);
         controller.setI(i);
@@ -92,8 +92,7 @@ public class GearRack extends PIDSubsystem {
         }
     }
 
-    public void ResetPID()
-    {
+    public void ResetPID() {
         PIDController controller = getPIDController();
         controller.reset();
 
@@ -102,7 +101,7 @@ public class GearRack extends PIDSubsystem {
         controller.setD(d);
         controller.setF(f);
     }
-    
+
     public void DisablePID() {
         if (isEnabled) {
             isEnabled = false;
@@ -112,6 +111,14 @@ public class GearRack extends PIDSubsystem {
 
     public void ResetEncoder() {
         encoderZero = motor.getSelectedSensorPosition();
+    }
+
+    public void SetMotorSpeed(double Speed) {
+        if (limitSwitch.get() == false) {
+            motor.set(ControlMode.PercentOutput, Speed * direction);
+        } else {
+            motor.set(ControlMode.PercentOutput, 0 * direction);
+        }
     }
 
     public long GetEncoderPosition() {
