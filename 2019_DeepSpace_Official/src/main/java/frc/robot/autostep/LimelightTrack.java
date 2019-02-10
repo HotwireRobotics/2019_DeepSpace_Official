@@ -13,22 +13,46 @@ import edu.wpi.first.networktables.NetworkTableInstance;
 import frc.robot.DriveTrain;
 import frc.robot.*;
 
-
 public class LimelightTrack extends AutoStep {
 
     public Robot robot;
     public Robot.LimelightPlacement placement;
+    public int direction;
 
-    public LimelightTrack(DriveTrain driveTrain, Robot robot, Robot.LimelightPlacement placement) {
+    public LimelightTrack(DriveTrain driveTrain, Robot robot, Robot.LimelightPlacement placement, int direction) {
         super(driveTrain);
         this.robot = robot;
         this.placement = placement;
+        this.direction = direction;
     }
 
     public void Begin() {
     }
 
     public void Update() {
-        robot.Limelight(placement);
+        NetworkTable table = NetworkTableInstance.getDefault().getTable("limelight");
+		NetworkTableEntry tx = table.getEntry("tx");
+		NetworkTableEntry ty = table.getEntry("ty");
+		NetworkTableEntry ta = table.getEntry("ta");
+        NetworkTableEntry tv = table.getEntry("tv");
+        
+		double x = tx.getDouble(0.0);
+		double y = ty.getDouble(0.0);
+		double area = ta.getDouble(0.0);
+        double value = tv.getDouble(0.0);
+
+        if (value == 0){
+            System.out.println("TURNING");
+            driveTrain.SetLeftSpeed(0.1f * direction);
+            driveTrain.SetRightSpeed(-0.1f * direction);
+
+        }else{
+            System.out.println("PLACING");
+            if (robot.Limelight(placement)) {
+                isDone = true;
+            }
+        }
+
+       
     }
 }

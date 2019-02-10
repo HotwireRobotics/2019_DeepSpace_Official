@@ -59,11 +59,14 @@ public class Robot extends TimedRobot {
 	public boolean povReleased = false;
 	public double potTarget = 0;
 	public double currentBuffer;
-	public double groundTarget = 0.8678;
-	public double shipTarget = 0.67;
-	public double rocketTarget = 0.78;
-	public double hatchTarget = 0.84;
+	public double groundTarget = 0.122;
+	public double shipTarget = 0.142;
+	public double rocketCargoTarget = 0.138;
+	public double hatchTarget = 0.129;
 	public float downForce = 0.0f;
+
+	public double lowerBuffer = 0;
+	public double upperBuffer = 0;
 
 	// Intake
 
@@ -104,7 +107,6 @@ public class Robot extends TimedRobot {
 	public void robotInit() {
 
 		pidTimer.start();
-		HatchRelease();
 	}
 
 	public void disabledPeriodic() {
@@ -112,14 +114,17 @@ public class Robot extends TimedRobot {
 		driver = new Joystick(0);
 		operator = new Joystick(1);
 	}
-
+	
 	public void autonomousInit() {
 		currentAutoStep = 0;
-
-		autonomous = new AutoStep[3];
+		autonomous = new AutoStep[5];
 		autonomous[0] = new NavxReset(driveTrain, navx);
-		autonomous[1] = new NavxTurn(driveTrain, navx, 90, 0.5f);
-		autonomous[2] = new NavxTurn(driveTrain, navx, 0, 0.5f);
+		//autonomous[1] = new TimedForward(driveTrain, 1.0f, 0.75f);
+		//autonomous[2] = new Wait(driveTrain, 0.5f);
+		autonomous[1] = new NavxTurn(driveTrain, navx, 27.0f, 0.45f);
+		autonomous[2] = new TimedForward(driveTrain, 1.0f, 0.5f);
+		autonomous[3] = new NavxTurn(driveTrain, navx, 20.0f, 0.45f);
+		autonomous[4] = new LimelightTrack(driveTrain, this, LimelightPlacement.Place, 1);
 		autonomous[0].Begin();
 	}
 
@@ -138,6 +143,7 @@ public class Robot extends TimedRobot {
 			}
 		} else {
 			System.out.println("Autonomous Done");
+			driveTrain.SetBothSpeed(0.0f);
 		}
 
 		UpdateMotors();
@@ -186,22 +192,35 @@ public class Robot extends TimedRobot {
 				}
 			}
 
+			double buffer = 0.001f;
+
 			// Arm Targets
 			if (povReleased == true && operator.getPOV() != -1) {
 				povReleased = false;
 				armHold = false;
 				DiskBrakeDisable();
 
-				currentBuffer = 0.005;
 				if (operator.getPOV() == 0) {
+					lowerBuffer = rocketCargoTarget - buffer;
+					upperBuffer = rocketCargoTarget + buffer;
+					potTarget = rocketCargoTarget;
+					downForce = 0.1f;
 
 				} else if (operator.getPOV() == 180) {
+					lowerBuffer = groundTarget;
+					upperBuffer = groundTarget + buffer;
 					potTarget = groundTarget;
 					downForce = 0.1f;
+
 				} else if (operator.getPOV() == 90) {
+					lowerBuffer = shipTarget - buffer;
+					upperBuffer = shipTarget + buffer;
 					potTarget = shipTarget;
 					downForce = 0.0f;
+
 				} else if (operator.getPOV() == 270) {
+					lowerBuffer = hatchTarget;
+					upperBuffer = hatchTarget + buffer;
 					potTarget = hatchTarget;
 					downForce = 0.075f;
 				}
@@ -210,19 +229,22 @@ public class Robot extends TimedRobot {
 				povReleased = true;
 			}
 
-			if (pot.get() > potTarget + currentBuffer) {
-				DiskBrakeDisable();
-				ArmMove(0.45f);
+			if (!armHold) {
+				if (pot.get() < lowerBuffer) {
+					DiskBrakeDisable();
+					// ArmMove(0.5f);
 
-			} else if (pot.get() < potTarget - currentBuffer) {
-				DiskBrakeDisable();
-				ArmMove(downForce);
+				} else if (pot.get() > upperBuffer) {
+					DiskBrakeDisable();
+					// ArmMove(downForce);
 
-			} else {
+				} else {
+					armHold = true;
+				}
+			}
+			if (armHold) {
 				DiskBrakeEnable();
 				ArmMove(0);
-				float bufferGrowth = 1.2f;
-				currentBuffer = currentBuffer * bufferGrowth;
 			}
 
 			// Hatch
@@ -248,14 +270,23 @@ public class Robot extends TimedRobot {
 		debug = new Joystick(3);
 		driver = new Joystick(0);
 		operator = new Joystick(1);
-		// DiskBrakeDisable();
+
+		DiskBrakeEnable();
 	}
 
 	public void testPeriodic() {
-		System.out.println(navx.getYaw());
-		System.out.println(pot.get());
+		System.out.println("navx" + navx.getYaw());
+		System.out.println("pot" + pot.get());
+
+		ArmMove(0.0f);
 		ControllerDrive();
 		UpdateMotors();
+
+		if (operator.getRawButton(1)) {
+			DiskBrakeDisable();
+		} else {
+			DiskBrakeEnable();
+		}
 	}
 
 	public void UpdateMotors() {
@@ -278,6 +309,7 @@ public class Robot extends TimedRobot {
 
 		driveTrain.SetRightSpeed(-verJoystick + -horJoystick);
 		driveTrain.SetLeftSpeed(-verJoystick + horJoystick);
+		driveTrain.SetCoast();
 	}
 
 	public void Intake(float speeed) {
@@ -326,7 +358,7 @@ public class Robot extends TimedRobot {
 		diskBrake.set(DoubleSolenoid.Value.kReverse);
 	}
 
-	public void Limelight(LimelightPlacement placement) {
+	public boolean Limelight(LimelightPlacement placement) {
 
 		NetworkTable table = NetworkTableInstance.getDefault().getTable("limelight");
 		NetworkTableEntry tx = table.getEntry("tx");
@@ -337,18 +369,31 @@ public class Robot extends TimedRobot {
 		double y = ty.getDouble(0.0);
 		double area = ta.getDouble(0.0);
 
-		driver.setRumble(RumbleType.kLeftRumble, 1);
+		//driver.setRumble(RumbleType.kLeftRumble, 1);
 		boolean isPlacing = (placement == LimelightPlacement.Place);
-		float approachSpeed = 0.45f;
-		float turnSpeed = 0.5f;
-		float buffer = 4.0f;
-		float approachtarget = 2.1f;
+
+		driveTrain.SetBreak();
+
+		// turning
+		float turnSpeed = 0.35f;
+		float turnBuffer = 3.0f;
+
+		// approach
+		float approachtarget = 2.9f;
+		float approachCloseTA = 1.1f;
+		float approachFarTA = 0.16f;
+		float approachSpeedClose = 0.3f;
+		float approachSpeedFar = 0.7f;
+
+		// reverse
 		float reverseSpeed = -0.5f;
+		float stopArea = 1.1f;
 
 		potTarget = hatchTarget;
 
 		if (!hitTarget) {
-			if (x >= buffer) {
+
+			if (x >= turnBuffer) {
 
 				if (isPlacing) {
 					HatchHold();
@@ -358,7 +403,7 @@ public class Robot extends TimedRobot {
 
 				driveTrain.SetLeftSpeed(turnSpeed);
 				driveTrain.SetRightSpeed(-turnSpeed);
-			} else if (x <= -buffer) {
+			} else if (x <= -turnBuffer) {
 
 				if (isPlacing) {
 					HatchHold();
@@ -369,8 +414,8 @@ public class Robot extends TimedRobot {
 				driveTrain.SetLeftSpeed(-turnSpeed);
 				driveTrain.SetRightSpeed(turnSpeed);
 			} else {
-				driveTrain.SetLeftSpeed(0f);
-				driveTrain.SetRightSpeed(0f);
+
+				// On target so drive forward
 				if (area < approachtarget) {
 
 					if (isPlacing) {
@@ -379,8 +424,17 @@ public class Robot extends TimedRobot {
 						HatchRelease();
 					}
 
-					driveTrain.SetLeftSpeed(approachSpeed);
-					driveTrain.SetRightSpeed(approachSpeed);
+					// number between 0 and 1. 0 is lowest speed, 1 is quickest
+					double normalizedApproachDist = (area - approachFarTA) / (approachCloseTA - approachFarTA);
+					normalizedApproachDist = Math.max(0.0, normalizedApproachDist);
+					normalizedApproachDist = Math.min(1.0, normalizedApproachDist);
+					normalizedApproachDist = 1.0 - normalizedApproachDist;
+
+					double approachSpeed = approachSpeedClose
+							+ ((approachSpeedFar - approachSpeedClose) * normalizedApproachDist);
+
+					System.out.println("APPROACH SPPED " + approachSpeed + " NORMALIZED " + normalizedApproachDist);
+					driveTrain.SetBothSpeed((float) approachSpeed);
 				} else {
 					hitTarget = true;
 				}
@@ -391,6 +445,14 @@ public class Robot extends TimedRobot {
 			} else {
 				HatchHold();
 			}
+
+			driveTrain.SetBothSpeed(reverseSpeed);
+
+			if (area < stopArea) {
+				return true;
+			}
 		}
+
+		return false;
 	}
 }

@@ -17,25 +17,21 @@ public class NavxTurn extends AutoStep {
     }
 
     public void Begin() {
-        driveTrain.SetLeftSpeed(speed * (turnDegree / Math.abs(turnDegree)));
-        driveTrain.SetRightSpeed(-speed * (turnDegree / Math.abs(turnDegree)));
+        float diff = (turnDegree - navx.getYaw());
+        int direction = (int) ((Math.abs(diff)) / diff);
+
+        driveTrain.SetLeftSpeed(speed * direction);
+        driveTrain.SetRightSpeed(-speed * direction);
     }
 
     public void Update() {
-        if (turnDegree >= navx.getYaw()) {
-            if (Math.abs(navx.getYaw()) > turnDegree) {
-                isDone = true;
-                driveTrain.SetLeftSpeed(0);
-                driveTrain.SetRightSpeed(0);
-            }
-        }
-        if (turnDegree <= navx.getYaw()) {
-            if (Math.abs(navx.getYaw()) < turnDegree) {
-                isDone = true;
-                driveTrain.SetLeftSpeed(0);
-                driveTrain.SetRightSpeed(0);
-            }
-        }
 
+        float degreeDifference = Math.abs(navx.getYaw() - turnDegree);
+        float goodEnoughDeg = 5.0f;
+        if (degreeDifference < goodEnoughDeg) {
+            isDone = true;
+            driveTrain.SetLeftSpeed(0);
+            driveTrain.SetRightSpeed(0);
+        }
     }
 }
