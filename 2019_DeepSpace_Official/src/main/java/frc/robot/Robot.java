@@ -114,17 +114,27 @@ public class Robot extends TimedRobot {
 		driver = new Joystick(0);
 		operator = new Joystick(1);
 	}
-	
+
 	public void autonomousInit() {
 		currentAutoStep = 0;
-		autonomous = new AutoStep[5];
+		autonomous = new AutoStep[14];
 		autonomous[0] = new NavxReset(driveTrain, navx);
-		//autonomous[1] = new TimedForward(driveTrain, 1.0f, 0.75f);
-		//autonomous[2] = new Wait(driveTrain, 0.5f);
+		// autonomous[1] = new TimedForward(driveTrain, 1.0f, 0.75f);
+		// autonomous[2] = new Wait(driveTrain, 0.5f);
 		autonomous[1] = new NavxTurn(driveTrain, navx, 27.0f, 0.45f);
-		autonomous[2] = new TimedForward(driveTrain, 1.0f, 0.5f);
+		autonomous[2] = new TimedForward(driveTrain, 0.65f, 0.75f);
 		autonomous[3] = new NavxTurn(driveTrain, navx, 20.0f, 0.45f);
 		autonomous[4] = new LimelightTrack(driveTrain, this, LimelightPlacement.Place, 1);
+		autonomous[5] = new NavxTurn(driveTrain, navx, -83.0f, 0.75f);
+		autonomous[6] = new TimedForward(driveTrain, 0.9f, 1.0f);
+		autonomous[7] = new Wait(driveTrain, 0.2f);
+		autonomous[8] = new LimelightTrack(driveTrain, this, LimelightPlacement.Pickup, -1);
+		autonomous[9] = new Wait(driveTrain, 0.2f);
+		autonomous[10] = new TimedForward(driveTrain, 1.45f, -1.0f);
+		autonomous[11] = new Wait(driveTrain, 0.1f);
+		autonomous[12] = new NavxTurn(driveTrain, navx, 95.0f, -0.5f);
+		autonomous[13] = new LimelightTrack(driveTrain, this, LimelightPlacement.Place, -1);
+		// autonomous[7] = new NavxTurn(driveTrain, navx, -165.0f, 0.75f);
 		autonomous[0].Begin();
 	}
 
@@ -369,20 +379,24 @@ public class Robot extends TimedRobot {
 		double y = ty.getDouble(0.0);
 		double area = ta.getDouble(0.0);
 
-		//driver.setRumble(RumbleType.kLeftRumble, 1);
+		// driver.setRumble(RumbleType.kLeftRumble, 1);
 		boolean isPlacing = (placement == LimelightPlacement.Place);
 
 		driveTrain.SetBreak();
 
 		// turning
-		float turnSpeed = 0.35f;
-		float turnBuffer = 3.0f;
+		float turnBufferPlace = 2.0f;
+		float turnBufferPickup = 4.0f;
+		double turningFarDist = 25;
+		double turningSpeedMinimum = 0.25f;
+		double maxTurnSpeed = 0.4f;
 
 		// approach
-		float approachtarget = 2.9f;
+		float approachTargetPlace = 2.95f;
+		float approachTargetPickup = 2.5f;
 		float approachCloseTA = 1.1f;
 		float approachFarTA = 0.16f;
-		float approachSpeedClose = 0.3f;
+		float approachSpeedClose = 0.2f;
 		float approachSpeedFar = 0.7f;
 
 		// reverse
@@ -392,6 +406,17 @@ public class Robot extends TimedRobot {
 		potTarget = hatchTarget;
 
 		if (!hitTarget) {
+
+			double normalized = Math.abs(maxTurnSpeed * (x / turningFarDist));
+			float turnSpeed = (float) Math.max(normalized, turningSpeedMinimum);
+			System.out.println(turnSpeed);
+
+			float turnBuffer = 0.0f;
+			if (isPlacing) {
+				turnBuffer = turnBufferPlace;
+			} else {
+				turnBuffer = turnBufferPickup;
+			}
 
 			if (x >= turnBuffer) {
 
@@ -416,7 +441,13 @@ public class Robot extends TimedRobot {
 			} else {
 
 				// On target so drive forward
-				if (area < approachtarget) {
+				float approachTarget = 0.0f;
+				if (isPlacing) {
+					approachTarget = approachTargetPlace;
+				} else {
+					approachTarget = approachTargetPickup;
+				}
+				if (area < approachTarget) {
 
 					if (isPlacing) {
 						HatchHold();
@@ -433,7 +464,6 @@ public class Robot extends TimedRobot {
 					double approachSpeed = approachSpeedClose
 							+ ((approachSpeedFar - approachSpeedClose) * normalizedApproachDist);
 
-					System.out.println("APPROACH SPPED " + approachSpeed + " NORMALIZED " + normalizedApproachDist);
 					driveTrain.SetBothSpeed((float) approachSpeed);
 				} else {
 					hitTarget = true;
@@ -449,6 +479,7 @@ public class Robot extends TimedRobot {
 			driveTrain.SetBothSpeed(reverseSpeed);
 
 			if (area < stopArea) {
+				System.out.println("Exiting");
 				return true;
 			}
 		}

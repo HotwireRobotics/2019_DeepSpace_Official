@@ -27,6 +27,7 @@ public class LimelightTrack extends AutoStep {
     }
 
     public void Begin() {
+        robot.hitTarget = false;
     }
 
     public void Update() {
@@ -43,11 +44,11 @@ public class LimelightTrack extends AutoStep {
 
         if (value == 0){
             System.out.println("TURNING");
-            driveTrain.SetLeftSpeed(0.1f * direction);
-            driveTrain.SetRightSpeed(-0.1f * direction);
+            driveTrain.SetLeftSpeed(0.35f * direction);
+            driveTrain.SetRightSpeed(-0.35f * direction);
 
         }else{
-            System.out.println("PLACING");
+            System.out.println("PLACING/PICKUP");
             if (robot.Limelight(placement)) {
                 isDone = true;
             }
