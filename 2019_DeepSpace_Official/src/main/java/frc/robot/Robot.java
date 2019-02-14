@@ -58,10 +58,10 @@ public class Robot extends TimedRobot {
 	public boolean povReleased = false;
 	public double potTarget = 0;
 	public double currentBuffer;
-	public double groundTarget = 0.122;
+	public double groundTarget = -170 ;
 	public double shipTarget = 0.142;
 	public double rocketCargoTarget = 0.138;
-	public double hatchTarget = 0.129;
+	public double hatchTarget = 1525;
 	public float downForce = 0.0f;
 	public float ultraheight = 6.5f;
 	public double lowerBuffer = 0;
@@ -78,11 +78,12 @@ public class Robot extends TimedRobot {
 	public int pdpHandle;
 	public GearRack gearRackFrontOne = new GearRack("FGR1", 5, 0.01f, 0.0f, 0.0f, 0.0f, -1, pdpHandle, (byte) 6, 4,
 			0.2f, 3);
-	public GearRack gearRackFrontTwo = new GearRack("FGR2", 6, 0.01f, 0.0f, 0.0f, 0.0f, 1, pdpHandle, (byte) 4, 5,
-			0.2f, 0);
-	public GearRack gearRackBackOne = new GearRack("BGR1", 7, 0.01f, 0.0f, 0.0f, 0.0f, 1, pdpHandle, (byte) 5, 6, 0.2f, 2);
-	public GearRack gearRackBackTwo = new GearRack("BGR2", 8, 0.01f, 0.0f, 0.0f, 0.0f, -1, pdpHandle, (byte) 4, 7,
-			0.2f, 1);
+	public GearRack gearRackFrontTwo = new GearRack("FGR2", 6, 0.01f, 0.0f, 0.0f, 0.0f, 1, pdpHandle, (byte) 4, 5, 0.2f,
+			0);
+	public GearRack gearRackBackOne = new GearRack("BGR1", 7, 0.01f, 0.0f, 0.0f, 0.0f, 1, pdpHandle, (byte) 5, 6, 0.2f,
+			2);
+	public GearRack gearRackBackTwo = new GearRack("BGR2", 8, 0.01f, 0.0f, 0.0f, 0.0f, -1, pdpHandle, (byte) 4, 7, 0.2f,
+			1);
 
 	// Ramp timer
 	public float timerDelaySeconds = 0.1f;
@@ -96,6 +97,12 @@ public class Robot extends TimedRobot {
 	public boolean timerTrue;
 
 	public boolean hitTarget = false;
+
+	enum RobotState {
+		Climbing, Autonomous, Teleop;
+	}
+
+	public RobotState currentState;
 
 	public enum LimelightPlacement {
 		Place, Pickup
@@ -153,6 +160,8 @@ public class Robot extends TimedRobot {
 
 	public void teleopInit() {
 
+		currentState = RobotState.Teleop;
+
 		checkPlatform = false;
 		foundPlatform = false;
 		ultrasonic.setAutomaticMode(true);
@@ -166,7 +175,44 @@ public class Robot extends TimedRobot {
 	}
 
 	public void teleopPeriodic() {
+		RobotLoop();
+	}
 
+	public void testInit() {
+		// Controllers
+		debug = new Joystick(3);
+		driver = new Joystick(0);
+		operator = new Joystick(1);
+
+		DiskBrakeEnable();
+	}
+
+	public void testPeriodic() {
+		System.out.println("navx" + navx.getYaw());
+		System.out.println("Encoder" + armRight.getSelectedSensorPosition());
+
+		ArmMove(0.0f);
+
+		ControllerDrive();
+		UpdateMotors();
+
+		if (operator.getRawButton(1)) {
+			DiskBrakeDisable();
+		} else {
+			DiskBrakeEnable();
+		}
+
+		if (driver.getRawButton(2)) {
+			ArmMove(0.5f);
+		} else if (driver.getRawButton(3)) {
+			ArmMove(-0.5f);
+		} else {
+			ArmMove(0.0f);
+		}
+
+	}
+
+	public void RobotLoop() {
 		// Driver Controls
 
 		// Limelight
@@ -185,7 +231,7 @@ public class Robot extends TimedRobot {
 			// ControllerDrive();
 
 			// Climb
-			{
+			if (currentState == RobotState.Climbing) {
 
 				// pid ramp timer
 				{
@@ -292,8 +338,7 @@ public class Robot extends TimedRobot {
 						gearRackFrontTwo.setSetpoint(1000);
 						gearRackFrontOne.setOutputRange(-1.0, 1.0);
 						gearRackFrontTwo.setOutputRange(-1.0, 1.0);
-						
-					
+
 						// gearRackFrontOne.motor.set(ControlMode.PercentOutput, 1.0);
 						// gearRackFrontTwo.motor.set(ControlMode.PercentOutput, -1.0);
 
@@ -309,125 +354,94 @@ public class Robot extends TimedRobot {
 					gearRackBackTwo.DisablePID();
 					gearRackBackOne.DisablePID();
 				}
-			}
+			} else if (currentState == RobotState.Teleop) {
+				System.out.println("Encoder" + armRight.getSelectedSensorPosition());
 
-			// Intake
-			// if (operator.getRawButton(1)) {
-			// Intake(0.9f);
-			// } else {
-			// if (operator.getRawButton(4)) {
-			// Outtake(0.4f);
-			// } else {
-			// Outtake(0.0f);
-			// }
-			// }
-
-			double buffer = 0.001f;
-
-			// Arm Targets
-			if (povReleased == true && operator.getPOV() != -1) {
-				povReleased = false;
-				armHold = false;
-				DiskBrakeDisable();
-
-				if (operator.getPOV() == 0) {
-					lowerBuffer = rocketCargoTarget - buffer;
-					upperBuffer = rocketCargoTarget + buffer;
-					potTarget = rocketCargoTarget;
-					downForce = 0.1f;
-
-				} else if (operator.getPOV() == 180) {
-					lowerBuffer = groundTarget;
-					upperBuffer = groundTarget + buffer;
-					potTarget = groundTarget;
-					downForce = 0.1f;
-
-				} else if (operator.getPOV() == 90) {
-					lowerBuffer = shipTarget - buffer;
-					upperBuffer = shipTarget + buffer;
-					potTarget = shipTarget;
-					downForce = 0.0f;
-
-				} else if (operator.getPOV() == 270) {
-					lowerBuffer = hatchTarget;
-					upperBuffer = hatchTarget + buffer;
-					potTarget = hatchTarget;
-					downForce = 0.075f;
-				}
-			}
-			if (operator.getPOV() == -1) {
-				povReleased = true;
-			}
-
-			if (!armHold) {
-				if (armRight.getSelectedSensorPosition() < lowerBuffer) {
-					DiskBrakeDisable();
-					// ArmMove(0.5f);
-
-				} else if (armRight.getSelectedSensorPosition() > upperBuffer) {
-					DiskBrakeDisable();
-					// ArmMove(downForce);
-
+				// Intake
+				if (operator.getRawButton(1)) {
+					Intake(0.9f);
 				} else {
-					armHold = true;
-				}
-			}
-			if (armHold) {
-				DiskBrakeEnable();
-				ArmMove(0);
-			}
-
-			// Hatch
-			if (operator.getRawButton(3)) {
-				if (buttonReleased == true) {
-					buttonReleased = false;
-					if (hatchReleased) {
-						HatchHold();
+					if (operator.getRawButton(4)) {
+						Outtake(0.4f);
 					} else {
-						HatchRelease();
+						Outtake(0.0f);
 					}
 				}
-			} else {
-				buttonReleased = true;
+
+				// Arm Targets
+				double buffer = 50f;
+				if (povReleased == true && operator.getPOV() != -1) {
+					povReleased = false;
+					armHold = false;
+					DiskBrakeDisable();
+
+					if (operator.getPOV() == 0) {
+						lowerBuffer = rocketCargoTarget - buffer;
+						upperBuffer = rocketCargoTarget + buffer;
+						potTarget = rocketCargoTarget;
+						downForce = 0.1f;
+
+					} else if (operator.getPOV() == 180) {
+						lowerBuffer = groundTarget;
+						upperBuffer = groundTarget + buffer;
+						potTarget = groundTarget;
+						downForce = 0.1f;
+
+					} else if (operator.getPOV() == 90) {
+						lowerBuffer = shipTarget - buffer;
+						upperBuffer = shipTarget + buffer;
+						potTarget = shipTarget;
+						downForce = 0.0f;
+
+					} else if (operator.getPOV() == 270) {
+						lowerBuffer = hatchTarget;
+						upperBuffer = hatchTarget + buffer;
+						potTarget = hatchTarget;
+						downForce = 0.075f;
+					}
+				}
+				if (operator.getPOV() == -1) {
+					povReleased = true;
+				}
+
+				if (!armHold) {
+					if (armRight.getSelectedSensorPosition() < lowerBuffer) {
+						DiskBrakeDisable();
+						ArmMove(0.5f);
+
+					} else if (armRight.getSelectedSensorPosition() > upperBuffer) {
+						DiskBrakeDisable();
+						ArmMove(downForce);
+
+					} else {
+						armHold = true;
+					}
+				}
+				if (armHold) {
+					DiskBrakeEnable();
+					ArmMove(0);
+				}
+
+				// Hatch
+				// TODO change this to buttonPressed
+				if (operator.getRawButton(3)) {
+					if (buttonReleased == true) {
+						buttonReleased = false;
+						if (hatchReleased) {
+							HatchHold();
+						} else {
+							HatchRelease();
+						}
+					}
+				} else {
+					buttonReleased = true;
+				}
+			} else if (currentState == RobotState.Autonomous) {
+				// TODO put auto here
 			}
 		}
 
 		UpdateMotors();
-	}
-
-	public void testInit() {
-		// Controllers
-		debug = new Joystick(3);
-		driver = new Joystick(0);
-		operator = new Joystick(1);
-
-		DiskBrakeEnable();
-	}
-
-	public void testPeriodic() {
-		System.out.println("navx" + navx.getYaw());
-		System.out.println("Encoder" + armRight.getSelectedSensorPosition());
-
-
-		ArmMove(0.0f);
-
-		ControllerDrive();
-		UpdateMotors();
-
-		if (operator.getRawButton(1)) {
-			DiskBrakeDisable();
-		} else {
-			DiskBrakeEnable();
-		}
-
-		if (driver.getRawButton(2)) {
-			ArmMove(0.5f);
-		} else if (driver.getRawButton(3)) {
-			ArmMove(-0.5f);
-		} else {
-			ArmMove(0.0f);
-		}
-
 	}
 
 	public void UpdateMotors() {
