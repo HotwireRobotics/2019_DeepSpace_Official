@@ -1,5 +1,5 @@
 package frc.robot;
-
+import edu.wpi.first.wpilibj.DigitalInput;
 import edu.wpi.first.hal.PDPJNI;
 import edu.wpi.first.wpilibj.VictorSP;
 import edu.wpi.first.wpilibj.command.PIDSubsystem;
@@ -24,14 +24,17 @@ public class GearRack extends PIDSubsystem {
     public int direction;
     public int pdpHandle;
     public int pdpChannel;
+    public int limitPort;
     public float gravityAddition;
+    public boolean foundPlatform;
+    public DigitalInput limit;
 
     private boolean isEnabled;
 
     public GearRack(String name, int motorId, float p, float i, float d, float f, int direction, int pdpHandle,
-            byte pdpChannel, float maxOutput, float gravityAddition) {
+            byte pdpChannel, float maxOutput, float gravityAddition, int limitPort) {
         super(name, p, i, d, f);
-
+        limit = new DigitalInput(limitPort);
         this.name = name;
         this.p = p;
         this.i = i;
@@ -56,10 +59,10 @@ public class GearRack extends PIDSubsystem {
 
     // Use the pid output, send it to the motor
     public void usePIDOutput(double output) {
-        if (isEnabled) {
+        if (isEnabled && !foundPlatform) {
             output += gravityAddition;
         }
-        motor.set(ControlMode.PercentOutput, output * direction);
+        SetMotorSpeed(output * direction);
     }
 
     public void Write() {
@@ -84,6 +87,7 @@ public class GearRack extends PIDSubsystem {
         SmartDashboard.putNumber(name + " raw encoder ", GetEncoderPosition());
         // SmartDashboard.putNumber(name + " Speed ",
         // motor.getSelectedSensorVelocity());
+        SmartDashboard.putBoolean(name, limit.get());
 
         PIDController controller = getPIDController();
         controller.setP(p);
@@ -122,5 +126,15 @@ public class GearRack extends PIDSubsystem {
 
     public long GetEncoderPosition() {
         return (encoderZero - motor.getSelectedSensorPosition()) * direction;
+    }
+    public void GetLimit() {
+        
+    }
+    public void SetMotorSpeed(double Speed){
+        if(limit.get() == false){
+            motor.set(ControlMode.PercentOutput, Speed);
+        }else{
+            motor.set(ControlMode.PercentOutput, 0);
+        }
     }
 }
