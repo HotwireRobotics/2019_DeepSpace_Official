@@ -154,7 +154,7 @@ public class Robot extends TimedRobot {
 
 		ultrasonic.setAutomaticMode(true);
 
-		potTarget = pot.get();
+		potTarget = armRight.getSelectedSensorPosition();
 
 		// Controllers
 		debug = new Joystick(3);
@@ -230,11 +230,11 @@ public class Robot extends TimedRobot {
 			}
 
 			if (!armHold) {
-				if (pot.get() < lowerBuffer) {
+				if (armRight.getSelectedSensorPosition() < lowerBuffer) {
 					DiskBrakeDisable();
 					// ArmMove(0.5f);
 
-				} else if (pot.get() > upperBuffer) {
+				} else if (armRight.getSelectedSensorPosition() > upperBuffer) {
 					DiskBrakeDisable();
 					// ArmMove(downForce);
 
@@ -276,7 +276,7 @@ public class Robot extends TimedRobot {
 
 	public void testPeriodic() {
 		System.out.println("navx" + navx.getYaw());
-		System.out.println("pot" + pot.get());
+		System.out.println("Encoder" + armRight.getSelectedSensorPosition());
 
 		ArmMove(0.0f);
 		ControllerDrive();
