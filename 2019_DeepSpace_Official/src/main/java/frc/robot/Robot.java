@@ -83,7 +83,7 @@ public class Robot extends TimedRobot {
 
 	// PID Controllers
 	public int pdpHandle;
-	public GearRack gearRackFrontOne = new GearRack("FGR1", 5, 0.01f, 0.0f, 0.0f, 0.0f, -1, pdpHandle, (byte) 6, 4,
+	public GearRack gearRackFrontOne = new GearRack("FGR1", 5, 0.01f, 0.0f, 0.0f, 0.0f, -1, pdpHandle, (byte) 6, 0.2f,
 			0.2f, 3);
 	public GearRack gearRackFrontTwo = new GearRack("FGR2", 6, 0.01f, 0.0f, 0.0f, 0.0f, 1, pdpHandle, (byte) 4, 5, 0.2f,
 			0);
@@ -95,7 +95,7 @@ public class Robot extends TimedRobot {
 	// Ramp timer
 	public float timerDelaySeconds = 0.1f;
 
-	public float rampLengthSeconds = 20;
+	public float rampLengthSeconds = 12;
 	public float rampCurrent = 0.0f;
 	public float rampStep;
 
@@ -124,6 +124,8 @@ public class Robot extends TimedRobot {
 	public boolean autoSetArm = false;
 
 	public void robotInit() {
+		ultrasonic.setAutomaticMode(true);
+		// backGroundUltrasonic.setAutomaticMode(true);
 
 		pidTimer.start();
 	}
@@ -172,7 +174,7 @@ public class Robot extends TimedRobot {
 	public void teleopInit() {
 		encoderZero = armRight.getSelectedSensorPosition();
 
-		currentState = RobotState.Teleop;
+		currentState = RobotState.Climbing;
 
 		checkPlatform = false;
 		foundPlatform = false;
@@ -191,6 +193,10 @@ public class Robot extends TimedRobot {
 	}
 
 	public void testInit() {
+
+		ultrasonic.setAutomaticMode(true);
+		// backGroundUltrasonic.setAutomaticMode(true);
+
 		// Controllers
 		debug = new Joystick(3);
 		driver = new Joystick(0);
@@ -204,7 +210,7 @@ public class Robot extends TimedRobot {
 	public void testPeriodic() {
 		encoder = armRight.getSelectedSensorPosition() - encoderZero;
 		System.out.println("navx" + navx.getYaw());
-		System.out.println("Encoder" + encoder);
+		System.out.println("Ultra " + ultrasonic.getRangeInches());
 
 		ArmMove(0.0f);
 
@@ -225,6 +231,22 @@ public class Robot extends TimedRobot {
 			ArmMove(0.0f);
 		}
 
+		if (operator.getRawButton(4)) {
+			gearRackFrontOne.SetMotorSpeed(-1.0f);
+			gearRackFrontTwo.SetMotorSpeed(1.0f);
+			gearRackBackOne.SetMotorSpeed(1.0f);
+			gearRackBackTwo.SetMotorSpeed(-1.0f);
+		} else if (operator.getRawButton(5)) {
+			gearRackFrontOne.SetMotorSpeed(1.0f);
+			gearRackFrontTwo.SetMotorSpeed(-1.0f);
+			gearRackBackOne.SetMotorSpeed(-1.0f);
+			gearRackBackTwo.SetMotorSpeed(1.0f);
+		} else {
+			gearRackFrontOne.SetMotorSpeed(0.0f);
+			gearRackFrontTwo.SetMotorSpeed(0.0f);
+			gearRackBackOne.SetMotorSpeed(0.0f);
+			gearRackBackTwo.SetMotorSpeed(0.0f);
+		}
 	}
 
 	public void RobotLoop() {
@@ -232,9 +254,12 @@ public class Robot extends TimedRobot {
 
 		intakeSwitch = intakeLimit.get();
 
-		if (currentState == RobotState.Climbing) {
+		gearRackBackOne.Write();
+		gearRackBackTwo.Write();
+		gearRackFrontOne.Write();
+		gearRackFrontTwo.Write();
 
-			// Driver Controls
+		if (currentState == RobotState.Climbing) {
 
 			// Climb
 
@@ -261,10 +286,6 @@ public class Robot extends TimedRobot {
 				}
 			}
 
-			gearRackBackOne.Write();
-			gearRackBackTwo.Write();
-			gearRackFrontOne.Write();
-			gearRackFrontTwo.Write();
 			System.out.println("Ultrasonic " + ultrasonic.getRangeInches());
 
 			SmartDashboard.putNumber("Ramp Target", rampTargetPoint);
@@ -280,36 +301,51 @@ public class Robot extends TimedRobot {
 				gearRackBackTwo.ResetPID();
 				gearRackFrontOne.ResetPID();
 				gearRackFrontTwo.ResetPID();
-				rampCurrent = 0f;
+
 				gearRackBackOne.foundPlatform = false;
 				gearRackBackTwo.foundPlatform = false;
 				gearRackFrontOne.foundPlatform = false;
 				gearRackFrontTwo.foundPlatform = false;
+
+				rampCurrent = 0f;
+				foundPlatform = false;
+				timerTrue = false;
 			}
 
 			if (driver.getRawButton(1)) {
-				Intake(-0.4f);
-				float topTarget = 67864;
-				UpdateRampTarget(topTarget * 0.1f);
+				float topTarget = 87000;
+				UpdateRampTarget(topTarget);
 				timerTrue = true;
+				DiskBrakeDisable();
+
 				float backMaxOutput = 0.3f;
 				float frontMaxOutput = 1.0f;
 
-				if (!foundPlatform) {
-					System.out.println("Going up");
+				if (driver.getRawButtonPressed(1)) {
 					gearRackBackOne.EnablePID();
-					gearRackBackOne.setSetpoint(rampCurrent);
 					gearRackBackTwo.EnablePID();
-					gearRackBackTwo.setSetpoint(rampCurrent);
 					gearRackFrontOne.EnablePID();
-					gearRackFrontOne.setSetpoint(rampCurrent);
 					gearRackFrontTwo.EnablePID();
-					gearRackFrontTwo.setSetpoint(rampCurrent);
 					gearRackBackOne.setOutputRange(0.0f, backMaxOutput);
 					gearRackBackTwo.setOutputRange(0.0f, backMaxOutput);
 					gearRackFrontOne.setOutputRange(0.0f, frontMaxOutput);
 					gearRackFrontTwo.setOutputRange(0.0f, frontMaxOutput);
-					ArmMove(-0.50f);
+				}
+
+				if (Math.abs(gearRackFrontOne.GetEncoderPosition() - topTarget) < (topTarget * 0.95f)) {
+					Intake(-0.6f);
+				} else {
+					Intake(-0.4f);
+				}
+
+				if (!foundPlatform) {
+					gearRackBackOne.setSetpoint(rampCurrent);
+					gearRackBackTwo.setSetpoint(rampCurrent);
+					gearRackFrontOne.setSetpoint(rampCurrent);
+					gearRackFrontTwo.setSetpoint(rampCurrent);
+
+					ArmMove(-0.35f);
+					System.out.println("Going up");
 				}
 
 				if (ultrasonic.getRangeInches() > 8) {
@@ -323,33 +359,42 @@ public class Robot extends TimedRobot {
 
 				if (checkPlatform == true) {
 					System.out.println("Checking for platform");
-					if (ultrasonic.getRangeInches() < ultraheight) {
+					float platformUltraHeight = 19;
+					if (ultrasonic.getRangeInches() < platformUltraHeight) {
 						foundPlatform = true;
 					}
 				}
 
 				if (foundPlatform) {
+
 					gearRackFrontOne.foundPlatform = true;
 					gearRackFrontTwo.foundPlatform = true;
 					gearRackBackOne.DisablePID();
 					gearRackBackTwo.DisablePID();
-					gearRackBackOne.SetMotorSpeed(holdSpeed);
-					gearRackBackTwo.SetMotorSpeed(holdSpeed);
-					driveTrain.SetLeftSpeed(0.0f);
-					driveTrain.SetRightSpeed(0.0f);
+
+					if (driver.getRawButton(4)) {
+						driveTrain.SetLeftSpeed(0.0f);
+						driveTrain.SetRightSpeed(0.0f);
+
+						gearRackBackOne.SetMotorSpeed(0.1);
+						gearRackBackTwo.SetMotorSpeed(0.1);
+					} else {
+						driveTrain.SetLeftSpeed(0.4f);
+						driveTrain.SetRightSpeed(0.4f);
+
+						gearRackBackOne.SetMotorSpeed(holdSpeed);
+						gearRackBackTwo.SetMotorSpeed(holdSpeed);
+					}
 
 					System.out.println("Found Platform");
+
 					ArmMove(0.0f);
 					gearRackFrontOne.EnablePID();
 					gearRackFrontTwo.EnablePID();
 					gearRackFrontOne.setSetpoint(1000);
 					gearRackFrontTwo.setSetpoint(1000);
-					gearRackFrontOne.setOutputRange(-1.0, 1.0);
-					gearRackFrontTwo.setOutputRange(-1.0, 1.0);
-
-					// gearRackFrontOne.motor.set(ControlMode.PercentOutput, 1.0);
-					// gearRackFrontTwo.motor.set(ControlMode.PercentOutput, -1.0);
-
+					gearRackFrontOne.setOutputRange(-1.0, 0);
+					gearRackFrontTwo.setOutputRange(-1.0, 0);
 				}
 
 			} else {
@@ -379,6 +424,9 @@ public class Robot extends TimedRobot {
 				}
 
 			} else {
+
+				// Turn off limelight
+				NetworkTableInstance.getDefault().getTable("limelight").getEntry("ledMode").setNumber(1);
 
 				System.out.println("Encoder" + encoder);
 
@@ -635,6 +683,8 @@ public class Robot extends TimedRobot {
 
 		if (!hitTarget) {
 
+			NetworkTableInstance.getDefault().getTable("limelight").getEntry("ledMode").setNumber(3);
+
 			double normalized = Math.abs(maxTurnSpeed * (x / turningFarDist));
 			float turnSpeed = (float) Math.max(normalized, turningSpeedMinimum);
 			System.out.println(turnSpeed);
@@ -704,6 +754,7 @@ public class Robot extends TimedRobot {
 				HatchHold();
 			}
 
+			NetworkTableInstance.getDefault().getTable("limelight").getEntry("ledMode").setNumber(1);
 			driveTrain.SetBothSpeed(reverseSpeed);
 
 			if (area < stopArea) {
