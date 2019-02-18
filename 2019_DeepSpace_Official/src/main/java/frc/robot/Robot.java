@@ -426,7 +426,7 @@ public class Robot extends TimedRobot {
 			} else {
 
 				// Turn off limelight
-				// NetworkTableInstance.getDefault().getTable("limelight").getEntry("ledMode").setNumber(1);
+				NetworkTableInstance.getDefault().getTable("limelight").getEntry("ledMode").setNumber(1);
 
 				System.out.println("Encoder" + encoder);
 
@@ -684,7 +684,7 @@ public class Robot extends TimedRobot {
 
 		if (!hitTarget) {
 
-			// NetworkTableInstance.getDefault().getTable("limelight").getEntry("ledMode").setNumber(3);
+			NetworkTableInstance.getDefault().getTable("limelight").getEntry("ledMode").setNumber(3);
 
 			double normalized = Math.abs(maxTurnSpeed * (x / turningFarDist));
 			float turnSpeed = (float) Math.max(normalized, turningSpeedMinimum);
@@ -755,10 +755,10 @@ public class Robot extends TimedRobot {
 				HatchHold();
 			}
 
-			// NetworkTableInstance.getDefault().getTable("limelight").getEntry("ledMode").setNumber(1);
 			driveTrain.SetBothSpeed(reverseSpeed);
 
 			if (area < stopArea) {
+				NetworkTableInstance.getDefault().getTable("limelight").getEntry("ledMode").setNumber(1);
 				return true;
 			}
 		}
