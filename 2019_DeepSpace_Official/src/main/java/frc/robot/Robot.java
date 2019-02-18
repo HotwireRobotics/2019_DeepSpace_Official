@@ -142,27 +142,26 @@ public class Robot extends TimedRobot {
 		currentState = RobotState.Autonomous;
 
 		currentAutoStep = 0;
-		autonomous = new AutoStep[7];
+		autonomous = new AutoStep[15];
 		autonomous[0] = new NavxReset(driveTrain, navx);
-		autonomous[1] = new TimedForward(driveTrain, 0.75f, 1.0f);
-		autonomous[2] = new TriggerArm(this);
-		autonomous[3] = new Wait(driveTrain, 0.5f);
-		autonomous[4] = new NavxTurn(driveTrain, navx, 27.0f, 0.45f);
-		autonomous[5] = new TimedForward(driveTrain, 0.65f, 0.75f);
-		autonomous[6] = new NavxTurn(driveTrain, navx, 20.0f, 0.45f);
-		// autonomous[7] = new LimelightTrack(driveTrain, this,
-		// LimelightPlacement.Place, 1);
-		// autonomous[5] = new NavxTurn(driveTrain, navx, -83.0f, 0.75f);
-		// autonomous[6] = new TimedForward(driveTrain, 0.9f, 1.0f);
-		// autonomous[7] = new Wait(driveTrain, 0.2f);
-		// autonomous[8] = new LimelightTrack(driveTrain, this,
-		// LimelightPlacement.Pickup, -1);
-		// autonomous[9] = new Wait(driveTrain, 0.2f);
-		// autonomous[10] = new TimedForward(driveTrain, 1.45f, -1.0f);
-		// autonomous[11] = new Wait(driveTrain, 0.1f);
-		// autonomous[12] = new NavxTurn(driveTrain, navx, 95.0f, -0.5f);
-		// autonomous[13] = new LimelightTrack(driveTrain, this,
-		// LimelightPlacement.Place, -1);
+
+		autonomous[1] = new TimedForward(driveTrain, 1.2f, 0.5f);
+		autonomous[2] = new Wait(driveTrain, 0.15f);
+		autonomous[3] = new LimelightTrack(driveTrain, this, LimelightPlacement.Place, 0);
+
+		autonomous[4] = new NavxTurn(driveTrain, navx, -80.0f, 0.75f);
+		autonomous[5] = new TimedForward(driveTrain, 1.05f, 1.0f);
+		autonomous[6] = new Wait(driveTrain, 0.2f);
+		autonomous[7] = new LimelightTrack(driveTrain, this, LimelightPlacement.Pickup, -1);
+
+		autonomous[8] = new Wait(driveTrain, 0.2f);
+		autonomous[9] = new TimedForward(driveTrain, 0.5f, -1.0f);
+		autonomous[10] = new NavxTurn(driveTrain, navx, -165, 0.75f);
+		autonomous[11] = new TimedForward(driveTrain, 0.88f, -1.0f);
+		autonomous[12] = new Wait(driveTrain, 0.1f);
+		autonomous[13] = new TimedTurn(driveTrain, 0.75f, -0.5f);
+		autonomous[14] = new LimelightTrack(driveTrain, this, LimelightPlacement.Place, -1);
+
 		autonomous[0].Begin();
 	}
 
@@ -174,7 +173,7 @@ public class Robot extends TimedRobot {
 	public void teleopInit() {
 		encoderZero = armRight.getSelectedSensorPosition();
 
-		currentState = RobotState.Climbing;
+		currentState = RobotState.Teleop;
 
 		checkPlatform = false;
 		foundPlatform = false;
@@ -208,9 +207,10 @@ public class Robot extends TimedRobot {
 	}
 
 	public void testPeriodic() {
+
 		encoder = armRight.getSelectedSensorPosition() - encoderZero;
-		System.out.println("navx" + navx.getYaw());
-		System.out.println("Ultra " + ultrasonic.getRangeInches());
+		// System.out.println("navx" + navx.getYaw());
+		// System.out.println("Ultra " + ultrasonic.getRangeInches());
 
 		ArmMove(0.0f);
 
@@ -426,7 +426,7 @@ public class Robot extends TimedRobot {
 			} else {
 
 				// Turn off limelight
-				NetworkTableInstance.getDefault().getTable("limelight").getEntry("ledMode").setNumber(1);
+				// NetworkTableInstance.getDefault().getTable("limelight").getEntry("ledMode").setNumber(1);
 
 				System.out.println("Encoder" + encoder);
 
@@ -544,6 +544,7 @@ public class Robot extends TimedRobot {
 			} else {
 				System.out.println("Autonomous Done");
 				driveTrain.SetBothSpeed(0.0f);
+				currentState = RobotState.Teleop;
 			}
 
 			if (autoSetArm == true) {
@@ -661,29 +662,29 @@ public class Robot extends TimedRobot {
 		driveTrain.SetBreak();
 
 		// turning
-		float turnBufferPlace = 2.0f;
+		float turnBufferPlace = 2.5f;
 		float turnBufferPickup = 4.0f;
 		double turningFarDist = 25;
-		double turningSpeedMinimum = 0.3f;
-		double maxTurnSpeed = 0.45f;
+		double turningSpeedMinimum = 0.31f;
+		double maxTurnSpeed = 0.31f;
 
 		// approach
-		float approachTargetPlace = 2.95f;
-		float approachTargetPickup = 2.5f;
-		float approachCloseTA = 1.1f;
-		float approachFarTA = 0.16f;
+		float approachTargetPlace = 11.3f;
+		float approachTargetPickup = 8.6f;
+		float approachCloseTA = 3.5f;
+		float approachFarTA = 0.9f;
 		float approachSpeedClose = 0.2f;
 		float approachSpeedFar = 0.7f;
 
 		// reverse
 		float reverseSpeed = -0.5f;
-		float stopArea = 1.1f;
+		float stopArea = 8.2f;
 
 		potTarget = hatchTarget;
 
 		if (!hitTarget) {
 
-			NetworkTableInstance.getDefault().getTable("limelight").getEntry("ledMode").setNumber(3);
+			// NetworkTableInstance.getDefault().getTable("limelight").getEntry("ledMode").setNumber(3);
 
 			double normalized = Math.abs(maxTurnSpeed * (x / turningFarDist));
 			float turnSpeed = (float) Math.max(normalized, turningSpeedMinimum);
@@ -754,7 +755,7 @@ public class Robot extends TimedRobot {
 				HatchHold();
 			}
 
-			NetworkTableInstance.getDefault().getTable("limelight").getEntry("ledMode").setNumber(1);
+			// NetworkTableInstance.getDefault().getTable("limelight").getEntry("ledMode").setNumber(1);
 			driveTrain.SetBothSpeed(reverseSpeed);
 
 			if (area < stopArea) {
