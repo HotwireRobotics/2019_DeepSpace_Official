@@ -9,6 +9,7 @@ public class NavxReset extends AutoStep {
 
     public AHRS navx;
     public float resetTimeLengthSeconds;
+    public Timer navxTime;
 
     public NavxReset(DriveTrain driveTrain, AHRS navx) {
         super(driveTrain);
@@ -16,11 +17,16 @@ public class NavxReset extends AutoStep {
     }
 
     public void Begin() {
+        navxTime = new Timer();
+        navxTime.reset();
+        navxTime.start();
         navx.reset();
+
+
     }
 
     public void Update() {
-        if (navx.getYaw() == 0.0) {
+        if (navxTime.get() > 0.2) {
             isDone = true;
         }
     }

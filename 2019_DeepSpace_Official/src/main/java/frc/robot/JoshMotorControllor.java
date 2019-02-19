@@ -2,6 +2,7 @@ package frc.robot;
 
 
 
+import edu.wpi.first.wpilibj.PWMVictorSPX;
 import edu.wpi.first.wpilibj.VictorSP;
 import com.ctre.phoenix.motorcontrol.*;
 import com.ctre.phoenix.motorcontrol.can.TalonSRX;
@@ -9,8 +10,8 @@ import com.ctre.phoenix.motorcontrol.can.WPI_TalonSRX;
 
 public class JoshMotorControllor {
 	
-	public VictorSP victor;
-	public TalonSRX talon;
+	public PWMVictorSPX victor;
+	public VictorSP talon;
 	public float accelValue;
 	public float target;
 	public boolean usingVictor;
@@ -19,9 +20,9 @@ public class JoshMotorControllor {
 	{
 		this.usingVictor = usingVictor;
 		if (usingVictor) {
-			victor = new VictorSP(motorpwm);
+			victor = new PWMVictorSPX(motorpwm);
 		} else {
-			talon = new WPI_TalonSRX(motorpwm);
+			talon = new VictorSP(motorpwm);
 		}
 		
 		accelValue = AcelerationMax;
@@ -34,7 +35,7 @@ public class JoshMotorControllor {
 			if(usingVictor) {
 				curr = victor.get();
 			} else {	
-				curr = talon.getMotorOutputPercent();
+				curr = talon.get();
 			}
 			
 			float newValue = Lerp((float)curr,target,accelValue);
@@ -48,7 +49,7 @@ public class JoshMotorControllor {
 			if (usingVictor) {
 				victor.set(newValue);
 			} else {
-				talon.set(ControlMode.PercentOutput, newValue);
+				talon.set(newValue);
 			}
 		}
 	}
