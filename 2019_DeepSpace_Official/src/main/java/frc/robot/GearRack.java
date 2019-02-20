@@ -131,7 +131,7 @@ public class GearRack extends PIDSubsystem {
         
     }
     public void SetMotorSpeed(double Speed){
-        if(limit.get() == false){
+        if(limit.get() == false || (Speed * direction) < 0){
             motor.set(ControlMode.PercentOutput, Speed);
         }else{
             System.out.println(name + " Hit Limit ");

@@ -66,7 +66,7 @@ public class Robot extends TimedRobot {
 
 	// Arm targets
 	public double groundTarget = 0.985;
-	public double shipTarget = 0.66;
+	public double shipCargoTarget = 0.66;
 	public double rocketCargoTarget = 0.138;
 	public double hatchTarget = 0.944;
 	public Timer brakeTimer;
@@ -230,6 +230,12 @@ public class Robot extends TimedRobot {
 	}
 
 	public void testPeriodic() {
+		//System.out.println("Encoder: " + gearRackFrontTwo.GetEncoderPosition());
+
+		gearRackBackOne.Write();
+		gearRackFrontOne.Write();
+		gearRackBackTwo.Write();
+		gearRackFrontTwo.Write();
 
 		NetworkTable table = NetworkTableInstance.getDefault().getTable("limelight");
 		NetworkTableEntry tx = table.getEntry("tx");
@@ -245,7 +251,7 @@ public class Robot extends TimedRobot {
 
 		
 		encoder = armRight.getSelectedSensorPosition() - encoderZero;
-		 System.out.println("navx" + navx.getYaw());
+		// System.out.println("navx" + navx.getYaw());
 		// System.out.println("Ultra " + ultrasonic.getRangeInches());
 		// System.out.println("Pot: " + pot.get());
 		ArmMove(0.0f);
@@ -267,12 +273,12 @@ public class Robot extends TimedRobot {
 			ArmMove(0.0f);
 		}
 
-		if (operator.getRawButton(4)) {
+		if (operator.getRawButton(2)) {
 			gearRackFrontOne.SetMotorSpeed(-1.0f);
 			gearRackFrontTwo.SetMotorSpeed(1.0f);
 			gearRackBackOne.SetMotorSpeed(1.0f);
 			gearRackBackTwo.SetMotorSpeed(-1.0f);
-		} else if (operator.getRawButton(5)) {
+		} else if (operator.getRawButton(3)) {
 			gearRackFrontOne.SetMotorSpeed(1.0f);
 			gearRackFrontTwo.SetMotorSpeed(-1.0f);
 			gearRackBackOne.SetMotorSpeed(-1.0f);
@@ -504,9 +510,9 @@ public class Robot extends TimedRobot {
 						potTarget = groundTarget;
 
 					} else if (operator.getPOV() == 90) {
-						lowerBuffer = shipTarget + armBuffer;
-						upperBuffer = shipTarget - armBuffer;
-						potTarget = shipTarget;
+						lowerBuffer = shipCargoTarget + armBuffer;
+						upperBuffer = shipCargoTarget - armBuffer;
+						potTarget = shipCargoTarget;
 						downForce = -0.1f;
 
 					} else if (operator.getPOV() == 270) {
