@@ -67,7 +67,8 @@ public class Robot extends TimedRobot {
 	// Arm targets
 	public double groundTarget = 0.985;
 	public double shipCargoTarget = 0.66;
-	public double rocketCargoTarget = 0.138;
+	public double rocketCargoTargetBot = 0.78;
+	public double rocketCargoTargetMid = 0.65f;
 	public double hatchTarget = 0.944;
 	public Timer brakeTimer;
 
@@ -152,11 +153,10 @@ public class Robot extends TimedRobot {
 
 		currentAutoStep = 0;
 		autonomous = new AutoStep[22];
-		
+
 		autonomous[0] = new NavxReset(driveTrain, navx);
 		autonomous[1] = new TriggerArm(this, false);
 		autonomous[2] = new Wait(driveTrain, 0.2f);
-		
 
 		autonomous[3] = new TimedForward(driveTrain, 1.2f, 0.5f);
 		autonomous[4] = new Wait(driveTrain, 0.15f);
@@ -166,7 +166,7 @@ public class Robot extends TimedRobot {
 
 		autonomous[8] = new NavxTurn(driveTrain, navx, -75.0f, 0.75f);
 		autonomous[9] = new TimedForward(driveTrain, 0.95f, 1.0f);
-		
+
 		autonomous[10] = new Wait(driveTrain, 0.2f);
 		autonomous[11] = new TriggerArm(this, false);
 		autonomous[12] = new LimelightTrack(driveTrain, this, LimelightPlacement.Pickup, -1);
@@ -230,7 +230,7 @@ public class Robot extends TimedRobot {
 	}
 
 	public void testPeriodic() {
-		//System.out.println("Encoder: " + gearRackFrontTwo.GetEncoderPosition());
+		// System.out.println("Encoder: " + gearRackFrontTwo.GetEncoderPosition());
 
 		gearRackBackOne.Write();
 		gearRackFrontOne.Write();
@@ -247,13 +247,12 @@ public class Robot extends TimedRobot {
 		double area = ta.getDouble(0.0);
 
 		NetworkTableInstance.getDefault().getTable("limelight").getEntry("ledMode").setNumber(3);
-		//System.out.println("area" + area);
+		// System.out.println("area" + area);
 
-		
 		encoder = armRight.getSelectedSensorPosition() - encoderZero;
 		// System.out.println("navx" + navx.getYaw());
 		// System.out.println("Ultra " + ultrasonic.getRangeInches());
-		// System.out.println("Pot: " + pot.get());
+		System.out.println("Pot: " + pot.get());
 		ArmMove(0.0f);
 
 		ControllerDrive();
@@ -483,28 +482,30 @@ public class Robot extends TimedRobot {
 						Intake(0.0f);
 					}
 				} else if (operator.getRawButton(4)) {
-					Outtake(0.4f);
+					if (potTarget == rocketCargoTargetBot) {
+						Outtake(0.8f);
+					} else if (potTarget == rocketCargoTargetMid) {
+						intakeTop.set(ControlMode.PercentOutput, -1f);
+						intakeBottom.set(ControlMode.PercentOutput, -0.35f);
+					} else {
+						Outtake(0.4f);
+					}
 				} else {
 					Outtake(0.0f);
 				}
 
 				// Arm Targets
-				if (povReleased == true && operator.getPOV() != -1) {
+				if (povReleased == true && (operator.getPOV() != -1 || operator.getRawAxis(2) != 0)) {
 					povReleased = false;
 					armHold = false;
 					DiskBrakeDisable();
 
 					if (operator.getPOV() == 0) {
-						armHold = true;
-						// lowerBuffer = rocketCargoTarget - buffer;
-						// upperBuffer = rocketCargoTarget + buffer;
-						// potTarget = rocketCargoTarget;
-						// downForce = 0.1f;
+						lowerBuffer = rocketCargoTargetBot + armBuffer;
+						upperBuffer = rocketCargoTargetBot - armBuffer;
+						potTarget = rocketCargoTargetBot;
 
 					} else if (operator.getPOV() == 180) {
-
-						downForce = 0.025f;
-
 						lowerBuffer = groundTarget;
 						upperBuffer = groundTarget - armBuffer;
 						potTarget = groundTarget;
@@ -513,13 +514,17 @@ public class Robot extends TimedRobot {
 						lowerBuffer = shipCargoTarget + armBuffer;
 						upperBuffer = shipCargoTarget - armBuffer;
 						potTarget = shipCargoTarget;
-						downForce = -0.1f;
 
 					} else if (operator.getPOV() == 270) {
 						lowerBuffer = hatchTarget;
 						upperBuffer = hatchTarget - armBuffer;
 						potTarget = hatchTarget;
-						downForce = 0.075f;
+
+					} else if (operator.getRawAxis(2) > 0.0f) {
+						lowerBuffer = rocketCargoTargetMid + armBuffer;
+						upperBuffer = rocketCargoTargetMid - armBuffer;
+						potTarget = rocketCargoTargetMid;
+
 					}
 				}
 				if (operator.getPOV() == -1) {
