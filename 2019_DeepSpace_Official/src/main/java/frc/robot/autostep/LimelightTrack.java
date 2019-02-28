@@ -43,12 +43,10 @@ public class LimelightTrack extends AutoStep {
         double value = tv.getDouble(0.0);
 
         if (value == 0){
-            System.out.println("TURNING");
             driveTrain.SetLeftSpeed(0.35f * direction);
             driveTrain.SetRightSpeed(-0.35f * direction);
 
         }else{
-            System.out.println("PLACING/PICKUP");
             if (robot.Limelight(placement)) {
                 isDone = true;
             }

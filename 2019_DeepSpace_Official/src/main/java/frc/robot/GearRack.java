@@ -1,4 +1,5 @@
 package frc.robot;
+
 import edu.wpi.first.wpilibj.DigitalInput;
 import edu.wpi.first.hal.PDPJNI;
 import edu.wpi.first.wpilibj.VictorSP;
@@ -67,8 +68,8 @@ public class GearRack extends PIDSubsystem {
 
     public void Write() {
 
-        //double current = PDPJNI.getPDPChannelCurrent((byte) 5, pdpHandle);
-        //SmartDashboard.putNumber(name + "Current", current);
+        // double current = PDPJNI.getPDPChannelCurrent((byte) 5, pdpHandle);
+        // SmartDashboard.putNumber(name + "Current", current);
 
         gravityAddition = (float) SmartDashboard.getNumber(name + " Gravity Addition", gravityAddition);
         p = (float) SmartDashboard.getNumber(name + "P", p);
@@ -127,13 +128,15 @@ public class GearRack extends PIDSubsystem {
     public long GetEncoderPosition() {
         return (encoderZero - motor.getSelectedSensorPosition()) * direction;
     }
+
     public void GetLimit() {
-        
+
     }
-    public void SetMotorSpeed(double Speed){
-        if(limit.get() == false || (Speed * direction) < 0){
+
+    public void SetMotorSpeed(double Speed) {
+        if (limit.get() == false || (Speed * direction) < 0) {
             motor.set(ControlMode.PercentOutput, Speed);
-        }else{
+        } else {
             System.out.println(name + " Hit Limit ");
             motor.set(ControlMode.PercentOutput, 0);
         }
