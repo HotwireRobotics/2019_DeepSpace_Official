@@ -88,7 +88,7 @@ public class GearRack extends PIDSubsystem {
         SmartDashboard.putNumber(name + " raw encoder ", GetEncoderPosition());
         // SmartDashboard.putNumber(name + " Speed ",
         // motor.getSelectedSensorVelocity());
-        SmartDashboard.putBoolean(name, limit.get());
+        SmartDashboard.putBoolean(name + " Limit", limit.get());
 
         PIDController controller = getPIDController();
         controller.setP(p);

@@ -5,7 +5,6 @@ import edu.wpi.first.wpilibj.DoubleSolenoid;
 import edu.wpi.first.wpilibj.Encoder;
 import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
-//import jdk.internal.net.http.common.Demand;
 import edu.wpi.first.wpilibj.SPI;
 import edu.wpi.first.wpilibj.Talon;
 import com.ctre.phoenix.motorcontrol.can.TalonSRX;
@@ -43,7 +42,6 @@ public class Robot extends TimedRobot {
 	public Compressor compressor = new Compressor();
 
 	// Drivetrain
-	public JoshMotorControllor badMotor = new JoshMotorControllor(5, 0.8f, false);
 	public DriveTrain driveTrain = new DriveTrain(0, 1, 2, 3, navx);
 
 	// neumatics
@@ -60,11 +58,14 @@ public class Robot extends TimedRobot {
 	// Arm
 	public TalonSRX armLeft = new TalonSRX(3);
 	public TalonSRX armRight = new TalonSRX(4);
+
+	//Arm Variables
 	public boolean armHold = false;
 	public boolean povReleased = false;
 	public double potTarget = 0;
 	public double currentBuffer;
 	public double armBuffer = 0.005f;
+	public Timer brakeTimer;
 
 	// Arm targets
 	public double groundTarget = 0.985;
@@ -72,8 +73,8 @@ public class Robot extends TimedRobot {
 	public double rocketCargoTargetBot = 0.78;
 	public double rocketCargoTargetMid = 0.65f;
 	public double hatchTarget = 0.944;
-	public Timer brakeTimer;
-
+	
+	//Climbing Variables
 	public float downForce = 0.0f;
 	public float ultraheight = 6.5f;
 	public double lowerBuffer = 0;
@@ -81,12 +82,12 @@ public class Robot extends TimedRobot {
 	public boolean checkPlatform = false;
 	public float holdSpeed = 0.0f;
 	public boolean foundPlatform = false;
-	public boolean intakeSwitch;
+	public float rollTarget = -7.5f;
 
 	// Intake
-
 	public TalonSRX intakeTop = new TalonSRX(1);
 	public TalonSRX intakeBottom = new TalonSRX(2);
+	public boolean hitTarget = false;
 
 	// PID Controllers
 	public int pdpHandle;
@@ -99,23 +100,6 @@ public class Robot extends TimedRobot {
 	public GearRack gearRackBackTwo = new GearRack("BGR2", 8, 0.01f, 0.0f, 0.0f, 0.0f, -1, pdpHandle, (byte) 4, 7, 0.2f,
 			1);
 
-	// Ramp timer
-	public float timerDelaySeconds = 0.1f;
-
-	public float rampLengthSeconds = 20;
-	public float rampCurrent = 0.0f;
-	public float rampStep;
-
-	public float rampTargetPoint = 0.0f;
-	public Timer pidTimer = new Timer();
-	public boolean timerTrue;
-
-	public boolean hitTarget = false;
-
-	public double encoderZero;
-	public double encoder;
-
-	public float rollTarget = -7.5f;
 
 	enum RobotState {
 		Autonomous, Teleop;
@@ -134,9 +118,7 @@ public class Robot extends TimedRobot {
 
 	public void robotInit() {
 		ultrasonic.setAutomaticMode(true);
-		// backGroundUltrasonic.setAutomaticMode(true);
 
-		pidTimer.start();
 	}
 
 	public void disabledInit() {
@@ -152,7 +134,6 @@ public class Robot extends TimedRobot {
 		brakeTimer = new Timer();
 		brakeTimer.start();
 
-		encoderZero = armRight.getSelectedSensorPosition();
 
 		currentState = RobotState.Teleop;
 
@@ -199,7 +180,6 @@ public class Robot extends TimedRobot {
 		brakeTimer = new Timer();
 		brakeTimer.start();
 
-		encoderZero = armRight.getSelectedSensorPosition();
 
 		currentState = RobotState.Teleop;
 
@@ -224,23 +204,17 @@ public class Robot extends TimedRobot {
 		navx.reset();
 
 		ultrasonic.setAutomaticMode(true);
-		// backGroundUltrasonic.setAutomaticMode(true);
 
 		// Controllers
 		debug = new Joystick(3);
 		driver = new Joystick(0);
 		operator = new Joystick(1);
 
-	
-		encoderZero = armRight.getSelectedSensorPosition();
-
 		DiskBrakeEnable();
 	}
 
 	public void testPeriodic() {
-		// System.out.println("Encoder: " + gearRackFrontTwo.GetEncoderPosition());
 
-		System.out.println("Roll:" + navx.getRoll());
 		gearRackBackOne.Write();
 		gearRackFrontOne.Write();
 		gearRackBackTwo.Write();
@@ -256,13 +230,7 @@ public class Robot extends TimedRobot {
 		double area = ta.getDouble(0.0);
 
 		NetworkTableInstance.getDefault().getTable("limelight").getEntry("ledMode").setNumber(3);
-		// System.out.println("area" + area);
 
-		encoder = armRight.getSelectedSensorPosition() - encoderZero;
-		// System.out.println("navx" + navx.getYaw());
-		// System.out.println("Ultra " + ultrasonic.getRangeInches());
-		//System.out.println("Pot: " + pot.get());
-		// ArmMove(0.0f);
 
 		ControllerDrive();
 		UpdateMotors();
@@ -307,9 +275,8 @@ public class Robot extends TimedRobot {
 	}
 
 	public void RobotLoop() {
-		encoder = armRight.getSelectedSensorPosition() - encoderZero;
 
-		intakeSwitch = intakeLimit.get();
+
 
 		gearRackBackOne.Write();
 		gearRackBackTwo.Write();
@@ -321,29 +288,6 @@ public class Robot extends TimedRobot {
 			// Climbing
 
 			driver.setRumble(RumbleType.kLeftRumble, 0);
-			hitTarget = false;
-
-			// pid ramp timer
-			{
-				if (pidTimer.get() >= timerDelaySeconds) {
-					pidTimer.reset();
-					if (timerTrue) {
-						if (rampTargetPoint > rampCurrent) {
-							rampCurrent += rampStep;
-							if (rampCurrent > rampTargetPoint) {
-								rampCurrent = rampTargetPoint;
-							}
-						} else if (rampTargetPoint < rampCurrent) {
-							rampCurrent -= rampStep;
-							if (rampCurrent < rampTargetPoint) {
-								rampCurrent = rampTargetPoint;
-							}
-						}
-					}
-				}
-			}
-
-			//System.out.println("Ultrasonic " + ultrasonic.getRangeInches());
 
 			if (operator.getRawButtonPressed(7)) {
 
@@ -352,49 +296,18 @@ public class Robot extends TimedRobot {
 				gearRackFrontOne.ResetEncoder();
 				gearRackFrontTwo.ResetEncoder();
 
-				gearRackBackOne.ResetPID();
-				gearRackBackTwo.ResetPID();
-				gearRackFrontOne.ResetPID();
-				gearRackFrontTwo.ResetPID();
 				gearRackBackOne.foundPlatform = false;
 				gearRackBackTwo.foundPlatform = false;
 				gearRackFrontOne.foundPlatform = false;
 				gearRackFrontTwo.foundPlatform = false;
 
-				rampCurrent = 0f;
 				foundPlatform = false;
-				timerTrue = false;
 			}
 
 			if (operator.getRawButton(7) && operator.getRawButton(8)) {
 				compressor.stop();
-				//System.out.println("Roll:" + navx.getRoll());
 				armHold = false;
-				float topTarget = 77844.0f;
-				UpdateRampTarget(topTarget);
-				timerTrue = true;
 				DiskBrakeDisable();
-
-				// float backMaxOutput = 0.3f;
-				// float frontMaxOutput = 1.0f;
-
-				// if (driver.getRawButtonPressed(1)) {
-				// gearRackBackOne.EnablePID();
-				// gearRackBackTwo.EnablePID();
-				// gearRackFrontOne.EnablePID();
-				// gearRackFrontTwo.EnablePID();
-				// gearRackBackOne.setOutputRange(0.0f, backMaxOutput);
-				// gearRackBackTwo.setOutputRange(0.0f, backMaxOutput);
-				// gearRackFrontOne.setOutputRange(0.0f, frontMaxOutput);
-				// gearRackFrontTwo.setOutputRange(0.0f, frontMaxOutput);
-				// }
-
-				// if (Math.abs(gearRackFrontOne.GetEncoderPosition() - topTarget) < (topTarget
-				// * 0.95f)) {
-				// Intake(0.6f);
-				// } else {
-				// Intake(0.4f);
-				// }
 
 				if (!foundPlatform) {
 					if (ultrasonic.getRangeInches() > 16) {
@@ -407,18 +320,12 @@ public class Robot extends TimedRobot {
 						driveTrain.SetLeftSpeed(0.0f);
 						driveTrain.SetRightSpeed(0.0f);
 					}
-					// gearRackBackOne.setSetpoint(rampCurrent);
-					// gearRackBackTwo.setSetpoint(rampCurrent);
-					// gearRackFrontOne.setSetpoint(rampCurrent);
-					// gearRackFrontTwo.setSetpoint(rampCurrent);
 
 					float backSpeed = 0.325f;
 
 					if(navx.getRoll() < rollTarget){
 						backSpeed = backSpeed + 0.1f;
 						System.out.println("Adjusting Roll");
-					}else{
-						
 					}
 
 					float frontSpeed = 0.535f;
@@ -443,10 +350,6 @@ public class Robot extends TimedRobot {
 
 				if (foundPlatform) {
 
-					// gearRackFrontOne.foundPlatform = true;
-					// gearRackFrontTwo.foundPlatform = true;
-					// gearRackBackOne.DisablePID();
-					// gearRackBackTwo.DisablePID();
 
 					System.out.println("Found Platform");
 
@@ -524,18 +427,12 @@ public class Robot extends TimedRobot {
 				RunArmControls();
 
 				// Hatch
-				// TODO change this to buttonPressed
-				if (operator.getRawButton(3)) {
-					if (buttonReleased == true) {
-						buttonReleased = false;
+				if (operator.getRawButtonPressed(3)) {
 						if (hatchReleased) {
 							HatchHold();
 						} else {
 							HatchRelease();
 						}
-					}
-				} else {
-					buttonReleased = true;
 				}
 				// Limelight
 				if (operator.getRawButton(5) || operator.getRawButton(6)) {
@@ -554,8 +451,6 @@ public class Robot extends TimedRobot {
 
 					// Turn off limelight
 					NetworkTableInstance.getDefault().getTable("limelight").getEntry("ledMode").setNumber(1);
-
-					// System.out.println("Encoder" + encoder);
 
 					// Intake
 					if (operator.getRawButton(1)) {
@@ -577,11 +472,6 @@ public class Robot extends TimedRobot {
 						Outtake(0.0f);
 					}
 
-					timerTrue = false;
-					// gearRackFrontOne.DisablePID();
-					// gearRackFrontTwo.DisablePID();
-					// gearRackBackTwo.DisablePID();
-					// gearRackBackOne.DisablePID();
 					gearRackBackOne.SetMotorSpeed(0);
 					gearRackBackTwo.SetMotorSpeed(0);
 					gearRackFrontOne.SetMotorSpeed(0);
@@ -590,6 +480,10 @@ public class Robot extends TimedRobot {
 			}
 
 		} else if (currentState == RobotState.Autonomous) {
+
+			if(operator.getRawButton(9) && operator.getRawButton(10)){
+				currentState = RobotState.Teleop;
+			}
 
 			System.out.println("Current auto step " + currentAutoStep);
 			if (currentAutoStep < autonomous.length) {
@@ -667,15 +561,6 @@ public class Robot extends TimedRobot {
 			driveTrain.SetBreak();
 		} else {
 			driveTrain.SetCoast();
-		}
-	}
-
-	public void UpdateRampTarget(float newTarget) {
-		if (newTarget != rampTargetPoint) {
-			rampTargetPoint = newTarget;
-			rampCurrent = 0.0f;
-			rampStep = Math.abs(rampCurrent - rampTargetPoint) / (rampLengthSeconds / timerDelaySeconds);
-
 		}
 	}
 
