@@ -64,7 +64,7 @@ public class Robot extends TimedRobot {
 	public boolean povReleased = false;
 	public double potTarget = 0;
 	public double currentBuffer;
-	public double armBuffer = 0.005f;
+	public double armBuffer = 0.006f;
 	public Timer brakeTimer;
 
 	// Arm targets
@@ -135,7 +135,7 @@ public class Robot extends TimedRobot {
 		brakeTimer.start();
 
 
-		currentState = RobotState.Teleop;
+		currentState = RobotState.Autonomous;
 
 		currentAutoStep = 0;
 		autonomous = new AutoStep[22];
@@ -214,6 +214,13 @@ public class Robot extends TimedRobot {
 	}
 
 	public void testPeriodic() {
+
+		System.out.println("Encoder Back Two : " + gearRackBackTwo.GetEncoderPosition());
+		System.out.println("Encoder Back One: " + gearRackBackOne.GetEncoderPosition());
+		System.out.println("Encoder Front One: " + gearRackFrontOne.GetEncoderPosition());
+		System.out.println("Encoder Front Two: " + gearRackFrontTwo.GetEncoderPosition());
+		System.out.println("Ultrasonic: " + ultrasonic.getRangeInches());
+		System.out.println("Pot:  " + pot.get());
 
 		gearRackBackOne.Write();
 		gearRackFrontOne.Write();
@@ -450,7 +457,7 @@ public class Robot extends TimedRobot {
 				} else {
 
 					// Turn off limelight
-					NetworkTableInstance.getDefault().getTable("limelight").getEntry("ledMode").setNumber(1);
+					NetworkTableInstance.getDefault().getTable("limelight").getEntry("ledMode").setNumber(3);
 
 					// Intake
 					if (operator.getRawButton(1)) {
@@ -728,7 +735,7 @@ public class Robot extends TimedRobot {
 			driveTrain.SetBothSpeed(reverseSpeed);
 
 			if (area < stopArea) {
-				NetworkTableInstance.getDefault().getTable("limelight").getEntry("ledMode").setNumber(1);
+				NetworkTableInstance.getDefault().getTable("limelight").getEntry("ledMode").setNumber(3);
 				return true;
 			}
 		}

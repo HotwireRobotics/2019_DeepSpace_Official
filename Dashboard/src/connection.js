@@ -27,7 +27,7 @@ class HotGraph {
     var y = newValue;
     this.data.push([x, y]);
     if (this.data.length > this.pointsCount) {
-      this.data.splice(0, 1);  
+      this.data.splice(0, 1);
     }
 
     this.graph.updateOptions({ 'file': this.data });
@@ -35,65 +35,47 @@ class HotGraph {
 }
 // ----------
 
+let ultrasonicDown;
+let gearRackFrontOne;
+let gearRackFrontTwo;
+
 let ultrasonic_down_update = (key, variableName) => {
   ultrasonicDown.PutValue(variableName);
 }
 let front_encoder_update_two = (key, variableName) => {
   gearRackFrontTwo.PutValue(variableName);
 }
-let back_encoder_update_one = (key, variableName) => {
-  gearRackBackOne.PutValue(variableName);
-}
-let back_encoder_update_two = (key, variableName) => {
-  gearRackBackTwo.PutValue(variableName);
-}
 let front_encoder_update_one = (key, variableName) => {
   gearRackFrontOne.PutValue(variableName);
 }
-let gearRackFrontOneLimit = (key, variableName) => {
-  document.getElementById('gearRackFrontOneLimit').innerHTML = variableName;
+let gear_rack_front_one_limit_update = (key, variableName) => {
+  document.getElementById('gear_rack_front_one_limit').innerHTML = variableName;
 }
-let gearRackFrontTwoLimit = (key, variableName) => {
-  document.getElementById('gearRackFrontTwoLimit').innerHTML = variableName;
+let gear_rack_front_two_limit_update = (key, variableName) => {
+  document.getElementById('gear_rack_front_two_limit').innerHTML = variableName;
 }
-let gearRackBackOneLimit = (key, variableName) => {
-  document.getElementById('gearRackBackOneLimit').innerHTML = variableName;
+let gear_rack_back_one_limit_update = (key, variableName) => {
+  document.getElementById('gear_rack_back_one_limit').innerHTML = variableName;
 }
-let gearRackBackTwoLimit = (key, variableName) => {
-  document.getElementById('gearRackBackTwoLimit').innerHTML = variableName;
+let gear_rack_back_two_limit_update = (key, variableName) => {
+  document.getElementById('gear_rack_back_two_limit').innerHTML = variableName;
 }
-// Set function to be called when robot dis/connects
+
 NetworkTables.addRobotConnectionListener(onRobotConnection, false);
 NetworkTables.addKeyListener('/SmartDashboard/ultrasonic_front', ultrasonic_down_update);
-NetworkTables.addKeyListener('/SmartDashboard/Front Gear Rack raw encoder ', front_encoder_update_one);
-NetworkTables.addKeyListener('/SmartDashboard/Back Gear Rack One raw encoder ', back_encoder_update_one);
-NetworkTables.addKeyListener('/SmartDashboard/Front Gear Rack Two raw encoder ', front_encoder_update_two);
-NetworkTables.addKeyListener('/SmartDashboard/Back Gear Rack Two raw encoder ', back_encoder_update_two);
-NetworkTables.addKeyListener('/SmartDashboard/Front Gear Rack Limit Switch', gearRackFrontOneLimit);
-NetworkTables.addKeyListener('/SmartDashboard/Front Gear Rack Two Limit Switch', gearRackFrontTwoLimit);
-NetworkTables.addKeyListener('/SmartDashboard/Back Gear Rack One Limit Switch', gearRackBackOneLimit);
-NetworkTables.addKeyListener('/SmartDashboard/Back Gear Rack Two Limit Switch', gearRackBackTwoLimit);
-
-let ultrasonicDown;
-let gearRackFrontOne;
-let gearRackFrontTwo;
-let gearRackBackOne;
-let gearRackBackTwo;
+NetworkTables.addKeyListener('/SmartDashboard/FGR1 raw encoder ', front_encoder_update_one);
+NetworkTables.addKeyListener('/SmartDashboard/FGR2 raw encoder ', front_encoder_update_two);
+NetworkTables.addKeyListener('/SmartDashboard/FGR1 Limit', gear_rack_front_one_limit_update);
+NetworkTables.addKeyListener('/SmartDashboard/BGR1 Limit', gear_rack_back_one_limit_update);
+NetworkTables.addKeyListener('/SmartDashboard/FGR2 Limit', gear_rack_front_two_limit_update);
+NetworkTables.addKeyListener('/SmartDashboard/BGR2 Limit', gear_rack_back_two_limit_update);
 
 function OnWindowLoad() {
   ultrasonicDown = new HotGraph("ultrasonic_down", 300);
   gearRackFrontOne = new HotGraph("gear_rack_one_encoder", 300);
   gearRackFrontTwo = new HotGraph("gear_rack_two_encoder", 300);
-  gearRackBackOne = new HotGraph("gear_rack_three_encoder", 300);
-  gearRackBackTwo = new HotGraph("gear_rack_four_encoder", 300);
 }
 
-// Function for hiding the connect box
-onkeydown = key => {
-  if (key.key === 'Escape') {
-    ultrasonicFront.PutValue(Math.random());
-  }
-};
 
 // Called when the robot connects
 function onRobotConnection(connected) {
@@ -130,7 +112,7 @@ function setLogin() {
   address.disabled = connect.disabled = false;
   connect.textContent = 'Connect';
   // Add the default address and select xxxx
-  address.value = '10.29.90.59';
+  address.value = '10.29.90.2';
   address.focus();
   address.setSelectionRange(8, 12);
 }
