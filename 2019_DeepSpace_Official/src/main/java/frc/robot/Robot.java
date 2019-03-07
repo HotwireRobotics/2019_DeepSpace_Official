@@ -59,8 +59,9 @@ public class Robot extends TimedRobot {
 	public TalonSRX armLeft = new TalonSRX(3);
 	public TalonSRX armRight = new TalonSRX(4);
 
-	//Arm Variables
+	// Arm Variables
 	public boolean armHold = false;
+	public boolean runArm = true;
 	public boolean povReleased = false;
 	public double potTarget = 0;
 	public double currentBuffer;
@@ -73,8 +74,8 @@ public class Robot extends TimedRobot {
 	public double rocketCargoTargetBot = 0.78;
 	public double rocketCargoTargetMid = 0.65f;
 	public double hatchTarget = 0.944;
-	
-	//Climbing Variables
+
+	// Climbing Variables
 	public float downForce = 0.0f;
 	public float ultraheight = 6.5f;
 	public double lowerBuffer = 0;
@@ -82,7 +83,6 @@ public class Robot extends TimedRobot {
 	public boolean checkPlatform = false;
 	public float holdSpeed = 0.0f;
 	public boolean foundPlatform = false;
-	public float rollTarget = -7.5f;
 
 	// Intake
 	public TalonSRX intakeTop = new TalonSRX(1);
@@ -99,7 +99,6 @@ public class Robot extends TimedRobot {
 			2);
 	public GearRack gearRackBackTwo = new GearRack("BGR2", 8, 0.01f, 0.0f, 0.0f, 0.0f, -1, pdpHandle, (byte) 4, 7, 0.2f,
 			1);
-
 
 	enum RobotState {
 		Autonomous, Teleop;
@@ -134,7 +133,6 @@ public class Robot extends TimedRobot {
 		brakeTimer = new Timer();
 		brakeTimer.start();
 
-
 		currentState = RobotState.Autonomous;
 
 		currentAutoStep = 0;
@@ -150,7 +148,7 @@ public class Robot extends TimedRobot {
 		autonomous[6] = new Wait(driveTrain, 0.2f);
 		autonomous[7] = new TriggerArm(this, true);
 
-		autonomous[8] = new NavxTurn(driveTrain, navx, -75.0f, 0.75f);
+		autonomous[8] = new NavxTurn(driveTrain, navx, -86.0f, 0.75f);
 		autonomous[9] = new TimedForward(driveTrain, 0.95f, 1.0f);
 
 		autonomous[10] = new Wait(driveTrain, 0.2f);
@@ -161,8 +159,8 @@ public class Robot extends TimedRobot {
 		autonomous[14] = new TimedForward(driveTrain, 0.5f, -1.0f);
 		autonomous[15] = new Wait(driveTrain, 0.2f);
 		autonomous[16] = new TimedTurn(driveTrain, 0.05f, 0.5f);
-		autonomous[17] = new NavxTurn(driveTrain, navx, -170, 0.75f);
-		autonomous[18] = new TimedForward(driveTrain, 1.35f, -0.8f);
+		autonomous[17] = new NavxTurn(driveTrain, navx, -165, 0.75f);
+		autonomous[18] = new TimedForward(driveTrain, 1.25f, -0.85f);
 		autonomous[19] = new Wait(driveTrain, 0.1f);
 		autonomous[20] = new TimedTurn(driveTrain, 0.85f, -0.5f);
 		autonomous[21] = new LimelightTrack(driveTrain, this, LimelightPlacement.Place, -1);
@@ -179,7 +177,6 @@ public class Robot extends TimedRobot {
 	public void teleopInit() {
 		brakeTimer = new Timer();
 		brakeTimer.start();
-
 
 		currentState = RobotState.Teleop;
 
@@ -215,17 +212,17 @@ public class Robot extends TimedRobot {
 
 	public void testPeriodic() {
 
-		System.out.println("Encoder Back Two : " + gearRackBackTwo.GetEncoderPosition());
-		System.out.println("Encoder Back One: " + gearRackBackOne.GetEncoderPosition());
-		System.out.println("Encoder Front One: " + gearRackFrontOne.GetEncoderPosition());
-		System.out.println("Encoder Front Two: " + gearRackFrontTwo.GetEncoderPosition());
+		// System.out.println("Encoder Back Two : " + gearRackBackTwo.GetEncoderPosition());
+		// System.out.println("Encoder Back One: " + gearRackBackOne.GetEncoderPosition());
+		// System.out.println("Encoder Front One: " + gearRackFrontOne.GetEncoderPosition());
+		// System.out.println("Encoder Front Two: " + gearRackFrontTwo.GetEncoderPosition());
 		System.out.println("Ultrasonic: " + ultrasonic.getRangeInches());
-		System.out.println("Pot:  " + pot.get());
+		// System.out.println("Pot:  " + pot.get());
 
-		gearRackBackOne.Write();
-		gearRackFrontOne.Write();
-		gearRackBackTwo.Write();
-		gearRackFrontTwo.Write();
+		// gearRackBackOne.Write();
+		// gearRackFrontOne.Write();
+		// gearRackBackTwo.Write();
+		// gearRackFrontTwo.Write();
 
 		NetworkTable table = NetworkTableInstance.getDefault().getTable("limelight");
 		NetworkTableEntry tx = table.getEntry("tx");
@@ -237,7 +234,6 @@ public class Robot extends TimedRobot {
 		double area = ta.getDouble(0.0);
 
 		NetworkTableInstance.getDefault().getTable("limelight").getEntry("ledMode").setNumber(3);
-
 
 		ControllerDrive();
 		UpdateMotors();
@@ -283,8 +279,6 @@ public class Robot extends TimedRobot {
 
 	public void RobotLoop() {
 
-
-
 		gearRackBackOne.Write();
 		gearRackBackTwo.Write();
 		gearRackFrontOne.Write();
@@ -311,17 +305,24 @@ public class Robot extends TimedRobot {
 				foundPlatform = false;
 			}
 
+			if (operator.getRawButtonPressed(8)) {
+				ArmMove(0.0f);
+				runArm = false;
+				DiskBrakeDisable();
+			}
+
 			if (operator.getRawButton(7) && operator.getRawButton(8)) {
 				compressor.stop();
 				armHold = false;
+				runArm = false;
 				DiskBrakeDisable();
 
 				if (!foundPlatform) {
 					if (ultrasonic.getRangeInches() > 16) {
 						checkPlatform = true;
 						ArmMove(0.0f);
-						Intake(0.8f);
-						driveTrain.SetBothSpeed(0.4f);
+						Outtake(0.8f);
+						driveTrain.SetBothSpeed(0.7f);
 					} else {
 						Intake(0.0f);
 						driveTrain.SetLeftSpeed(0.0f);
@@ -329,13 +330,14 @@ public class Robot extends TimedRobot {
 					}
 
 					float backSpeed = 0.325f;
+					float frontSpeed = 0.535f;
+					float rollTarget = -7.5f;
 
-					if(navx.getRoll() < rollTarget){
+					if (navx.getRoll() < rollTarget) {
 						backSpeed = backSpeed + 0.1f;
 						System.out.println("Adjusting Roll");
 					}
 
-					float frontSpeed = 0.535f;
 					gearRackFrontOne.SetMotorSpeed(-frontSpeed);
 					gearRackFrontTwo.SetMotorSpeed(frontSpeed);
 					gearRackBackOne.SetMotorSpeed(backSpeed);
@@ -343,8 +345,6 @@ public class Robot extends TimedRobot {
 
 					// ArmMove(0.5f);
 					System.out.println("Going up");
-
-					
 				}
 
 				if (checkPlatform) {
@@ -356,7 +356,6 @@ public class Robot extends TimedRobot {
 				}
 
 				if (foundPlatform) {
-
 
 					System.out.println("Found Platform");
 
@@ -398,6 +397,7 @@ public class Robot extends TimedRobot {
 				if (povReleased == true && (operator.getPOV() != -1 || operator.getRawAxis(2) != 0)) {
 					povReleased = false;
 					armHold = false;
+					runArm = true;
 					DiskBrakeDisable();
 
 					if (operator.getPOV() == 0) {
@@ -435,11 +435,11 @@ public class Robot extends TimedRobot {
 
 				// Hatch
 				if (operator.getRawButtonPressed(3)) {
-						if (hatchReleased) {
-							HatchHold();
-						} else {
-							HatchRelease();
-						}
+					if (hatchReleased) {
+						HatchHold();
+					} else {
+						HatchRelease();
+					}
 				}
 				// Limelight
 				if (operator.getRawButton(5) || operator.getRawButton(6)) {
@@ -488,7 +488,7 @@ public class Robot extends TimedRobot {
 
 		} else if (currentState == RobotState.Autonomous) {
 
-			if(operator.getRawButton(9) && operator.getRawButton(10)){
+			if (operator.getRawButton(9) && operator.getRawButton(10)) {
 				currentState = RobotState.Teleop;
 			}
 
@@ -580,36 +580,38 @@ public class Robot extends TimedRobot {
 	}
 
 	public void RunArmControls() {
-		if (!armHold) {
-			if (pot.get() > lowerBuffer) {
-				DiskBrakeDisable();
-				ArmMove(0.4f);
+		if (runArm) {
+			if (!armHold) {
+				if (pot.get() > lowerBuffer) {
+					DiskBrakeDisable();
+					ArmMove(0.4f);
 
-			} else if (pot.get() < upperBuffer) {
-				DiskBrakeDisable();
+				} else if (pot.get() < upperBuffer) {
+					DiskBrakeDisable();
 
-				float downForce = 0.0f;
-				if (pot.get() < 0.64f) {
-					downForce = -0.15f;
-				} else if (pot.get() < 0.777f) {
-					downForce = 0.0f;
+					float downForce = 0.0f;
+					if (pot.get() < 0.64f) {
+						downForce = -0.15f;
+					} else if (pot.get() < 0.777f) {
+						downForce = 0.0f;
+					} else {
+						downForce = 0.075f;
+					}
+					ArmMove(downForce);
+
 				} else {
-					downForce = 0.075f;
+					armHold = true;
+					brakeTimer = new Timer();
+					brakeTimer.start();
 				}
-				ArmMove(downForce);
-
-			} else {
-				armHold = true;
-				brakeTimer = new Timer();
-				brakeTimer.start();
 			}
-		}
 
-		if (armHold) {
+			if (armHold) {
 
-			DiskBrakeEnable();
-			if (brakeTimer.get() > 0.1) {
-				ArmMove(0.0f);
+				DiskBrakeEnable();
+				if (brakeTimer.get() > 0.1) {
+					ArmMove(0.0f);
+				}
 			}
 		}
 	}
@@ -633,19 +635,19 @@ public class Robot extends TimedRobot {
 		driveTrain.SetBreak();
 
 		// turning
-		float turnBufferPlace = 2.1f;
+		float turnBufferPlace = 2.05f;
 		float turnBufferPickup = 4.0f;
 		double turningFarDist = 25;
-		double turningSpeedMinimum = 0.31f;
-		double maxTurnSpeed = 0.31f;
+		double turningSpeedMinimum = 0.32f;
+		double maxTurnSpeed = 0.32f;
 
 		// approach
-		float approachTargetPlace = 9.6f;
+		float approachTargetPlace = 9.85f;
 		float approachTargetPickup = 6.85f;
 		float approachCloseTA = 1.5f;
 		float approachFarTA = 0.162f;
-		float approachSpeedClose = 0.22f;
-		float approachSpeedFar = 0.7f;
+		float approachSpeedClose = 0.3f;
+		float approachSpeedFar = 0.75f;
 
 		// reverse
 		float reverseSpeed = -0.5f;
