@@ -62,7 +62,7 @@ let gear_rack_back_two_limit_update = (key, variableName) => {
 }
 
 NetworkTables.addRobotConnectionListener(onRobotConnection, false);
-NetworkTables.addKeyListener('/SmartDashboard/ultrasonic_front', ultrasonic_down_update);
+NetworkTables.addKeyListener('/SmartDashboard/UltrasonicDown', ultrasonic_down_update);
 NetworkTables.addKeyListener('/SmartDashboard/FGR1 raw encoder ', front_encoder_update_one);
 NetworkTables.addKeyListener('/SmartDashboard/FGR2 raw encoder ', front_encoder_update_two);
 NetworkTables.addKeyListener('/SmartDashboard/FGR1 Limit', gear_rack_front_one_limit_update);

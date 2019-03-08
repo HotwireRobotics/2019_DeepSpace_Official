@@ -283,6 +283,7 @@ public class Robot extends TimedRobot {
 		gearRackBackTwo.Write();
 		gearRackFrontOne.Write();
 		gearRackFrontTwo.Write();
+		SmartDashboard.putNumber("UltrasonicDown", ultrasonic.getRangeInches());
 
 		if (currentState == RobotState.Teleop) {
 
