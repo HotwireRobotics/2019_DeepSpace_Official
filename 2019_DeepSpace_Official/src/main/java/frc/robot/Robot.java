@@ -69,11 +69,11 @@ public class Robot extends TimedRobot {
 	public Timer brakeTimer;
 
 	// Arm targets
-	public double groundTarget = 0.985;
+	public double groundTarget = 1.0;
 	public double shipCargoTarget = 0.66;
 	public double rocketCargoTargetBot = 0.78;
 	public double rocketCargoTargetMid = 0.65f;
-	public double hatchTarget = 0.944;
+	public double hatchTarget = 0.95;
 
 	// Climbing Variables
 	public float downForce = 0.0f;
@@ -113,7 +113,6 @@ public class Robot extends TimedRobot {
 	// Auto
 	public AutoStep[] autonomous;
 	public int currentAutoStep;
-	public boolean autoSetArm = false;
 
 	public void robotInit() {
 		ultrasonic.setAutomaticMode(true);
@@ -133,7 +132,7 @@ public class Robot extends TimedRobot {
 		brakeTimer = new Timer();
 		brakeTimer.start();
 
-		currentState = RobotState.Autonomous;
+		currentState = RobotState.Teleop;
 
 		currentAutoStep = 0;
 		autonomous = new AutoStep[22];
@@ -169,8 +168,6 @@ public class Robot extends TimedRobot {
 	}
 
 	public void autonomousPeriodic() {
-
-		System.out.println("Navx: " + navx.getYaw());
 		RobotLoop();
 	}
 
@@ -216,14 +213,15 @@ public class Robot extends TimedRobot {
 		// System.out.println("Encoder Back One: " + gearRackBackOne.GetEncoderPosition());
 		// System.out.println("Encoder Front One: " + gearRackFrontOne.GetEncoderPosition());
 		// System.out.println("Encoder Front Two: " + gearRackFrontTwo.GetEncoderPosition());
-		System.out.println("Ultrasonic: " + ultrasonic.getRangeInches());
-		// System.out.println("Pot:  " + pot.get());
+		// System.out.println("Ultrasonic: " + ultrasonic.getRangeInches());
 
 		// gearRackBackOne.Write();
 		// gearRackFrontOne.Write();
 		// gearRackBackTwo.Write();
 		// gearRackFrontTwo.Write();
 
+		// System.out.println("Navx Yaw:" + navx.getYaw());
+		System.out.println("Pot:  " + pot.get());
 		NetworkTable table = NetworkTableInstance.getDefault().getTable("limelight");
 		NetworkTableEntry tx = table.getEntry("tx");
 		NetworkTableEntry ty = table.getEntry("ty");
@@ -319,7 +317,7 @@ public class Robot extends TimedRobot {
 				DiskBrakeDisable();
 
 				if (!foundPlatform) {
-					if (ultrasonic.getRangeInches() > 16) {
+					if (ultrasonic.getRangeInches() > 15) {
 						checkPlatform = true;
 						ArmMove(0.0f);
 						Outtake(0.8f);
@@ -332,15 +330,15 @@ public class Robot extends TimedRobot {
 
 					float backSpeed = 0.325f;
 					float frontSpeed = 0.535f;
-					float rollTarget = -7.5f;
+					float rollTarget = -5.5f;
 
 					if (navx.getRoll() < rollTarget) {
-						backSpeed = backSpeed + 0.1f;
+						backSpeed = backSpeed + 0.2f;
 						System.out.println("Adjusting Roll");
 					}
 
 					gearRackFrontOne.SetMotorSpeed(-frontSpeed);
-					gearRackFrontTwo.SetMotorSpeed(frontSpeed);
+					gearRackFrontTwo.SetMotorSpeed(frontSpeed + 0.05f);
 					gearRackBackOne.SetMotorSpeed(backSpeed);
 					gearRackBackTwo.SetMotorSpeed(-backSpeed);
 
@@ -583,20 +581,33 @@ public class Robot extends TimedRobot {
 	public void RunArmControls() {
 		if (runArm) {
 			if (!armHold) {
+
+				// NOTE these downForces go from ground up.
+
 				if (pot.get() > lowerBuffer) {
 					DiskBrakeDisable();
-					ArmMove(0.4f);
+					// ArmMove(0.25f);
+
+					float downForce = 0.0f;
+					if (pot.get() < 0.64f) {
+						downForce = 0.2f;
+					} else if (pot.get() < 0.777f) {
+						downForce = 0.4f;
+					} else {
+						downForce = 0.4f;
+					}
+					ArmMove(downForce);
 
 				} else if (pot.get() < upperBuffer) {
 					DiskBrakeDisable();
 
 					float downForce = 0.0f;
 					if (pot.get() < 0.64f) {
-						downForce = -0.15f;
+						downForce = -0.17f; //downForce = -0.17f;
 					} else if (pot.get() < 0.777f) {
-						downForce = 0.0f;
+						downForce = -0.05f; //downForce = -0.05f;
 					} else {
-						downForce = 0.075f;
+						downForce = -0.1f; //downForce = 0.1f;
 					}
 					ArmMove(downForce);
 
@@ -613,7 +624,9 @@ public class Robot extends TimedRobot {
 				if (brakeTimer.get() > 0.1) {
 					ArmMove(0.0f);
 				}
-			}
+				if(potTarget == hatchTarget){
+					ArmMove(0.1f);
+				}			}
 		}
 	}
 
@@ -636,23 +649,23 @@ public class Robot extends TimedRobot {
 		driveTrain.SetBreak();
 
 		// turning
-		float turnBufferPlace = 2.05f;
-		float turnBufferPickup = 4.0f;
+		float turnBufferPlace = 2.0f;
+		float turnBufferPickup = 2.0f;
 		double turningFarDist = 25;
 		double turningSpeedMinimum = 0.32f;
 		double maxTurnSpeed = 0.32f;
 
 		// approach
-		float approachTargetPlace = 9.85f;
-		float approachTargetPickup = 6.85f;
-		float approachCloseTA = 1.5f;
+		float approachTargetPlace = 3.9f; //9.85
+		float approachTargetPickup = 3.1f; // 6.85
+		float approachCloseTA = 0.9f; // 1.5
 		float approachFarTA = 0.162f;
 		float approachSpeedClose = 0.3f;
 		float approachSpeedFar = 0.75f;
 
 		// reverse
 		float reverseSpeed = -0.5f;
-		float stopArea = 6.6f;
+		float stopArea = 2.9f;
 
 		potTarget = hatchTarget;
 
@@ -661,12 +674,12 @@ public class Robot extends TimedRobot {
 			NetworkTableInstance.getDefault().getTable("limelight").getEntry("ledMode").setNumber(3);
 
 			if (value == 0) {
+				System.out.println("no target");
 				driveTrain.SetBothSpeed(0.0f);
 
 			} else {
 				double normalized = Math.abs(maxTurnSpeed * (x / turningFarDist));
 				float turnSpeed = (float) Math.max(normalized, turningSpeedMinimum);
-				System.out.println(turnSpeed);
 
 				float turnBuffer = 0.0f;
 				if (isPlacing) {
@@ -683,6 +696,8 @@ public class Robot extends TimedRobot {
 						HatchRelease();
 					}
 
+					System.out.println("Limelight Turning Right");
+
 					driveTrain.SetLeftSpeed(turnSpeed);
 					driveTrain.SetRightSpeed(-turnSpeed);
 				} else if (x <= -turnBuffer) {
@@ -692,6 +707,7 @@ public class Robot extends TimedRobot {
 					} else {
 						HatchRelease();
 					}
+					System.out.println("Limelight Turning Left");
 
 					driveTrain.SetLeftSpeed(-turnSpeed);
 					driveTrain.SetRightSpeed(turnSpeed);
@@ -722,7 +738,6 @@ public class Robot extends TimedRobot {
 								+ ((approachSpeedFar - approachSpeedClose) * normalizedApproachDist);
 
 						driveTrain.SetBothSpeed((float) approachSpeed);
-						System.out.println("Approach Speed: " + approachSpeed);
 					} else {
 						hitTarget = true;
 					}

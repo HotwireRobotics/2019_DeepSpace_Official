@@ -19,20 +19,19 @@ public class TriggerArm extends AutoStep {
     }
 
     public void Update() {
-        robot.autoSetArm = true;
+        robot.DiskBrakeDisable();
         isDone = true;
+        robot.armHold = false;
+        robot.runArm = true;
 
         if (down) {
             robot.lowerBuffer = robot.groundTarget;
             robot.upperBuffer = robot.groundTarget - robot.armBuffer;
             robot.potTarget = robot.groundTarget;
-            robot.armHold = false;
         } else {
-            robot.lowerBuffer = robot.hatchTarget;
-            robot.upperBuffer = robot.hatchTarget - robot.armBuffer;
-            robot.potTarget = robot.hatchTarget;
-            robot.armHold = false;
+            robot.lowerBuffer = robot.hatchTarget - 0.06f;
+            robot.upperBuffer = robot.hatchTarget - robot.armBuffer - 0.06f;
+            robot.potTarget = robot.hatchTarget - 0.06f;
         }
-
     }
 }
