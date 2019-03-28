@@ -29,9 +29,9 @@ public class TriggerArm extends AutoStep {
             robot.upperBuffer = robot.groundTarget - robot.armBuffer;
             robot.potTarget = robot.groundTarget;
         } else {
-            robot.lowerBuffer = robot.hatchTarget + robot.armBuffer;
-            robot.upperBuffer = robot.hatchTarget - robot.armBuffer;
-            robot.potTarget = robot.hatchTarget;
+            robot.lowerBuffer = robot.hatchTarget + robot.armBuffer - 0.01f;
+            robot.upperBuffer = robot.hatchTarget - robot.armBuffer - 0.01f;
+            robot.potTarget = robot.hatchTarget - 0.01f;
         }
     }
 }
