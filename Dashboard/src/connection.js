@@ -64,13 +64,16 @@ let gear_rack_front_two_limit_update = (key, variableName) => {
   document.getElementById('gear_rack_front_two_limit').innerHTML = variableName;
 }
 let gear_rack_back_one_limit_update = (key, variableName) => {
-  document.getElementById('gear_rack_back_one_limit').innerHTML = variableName; 
+  document.getElementById('gear_rack_back_one_limit').innerHTML = variableName;
 }
 let gear_rack_back_two_limit_update = (key, variableName) => {
   document.getElementById('gear_rack_back_two_limit').innerHTML = variableName;
 }
 let update_match_time = (key, variableName) => {
   document.getElementById('header').innerHTML = 'Hotwire Dashboard ' + variableName;
+}
+let update_auto_choice_display = (key, variableName) => {
+  document.getElementById('AutoChoiceDisplay').innerHTML = variableName;
 }
 
 NetworkTables.addRobotConnectionListener(onRobotConnection, false);
@@ -82,6 +85,7 @@ NetworkTables.addKeyListener('/SmartDashboard/BGR2 Limit', gear_rack_back_two_li
 NetworkTables.addKeyListener('/SmartDashboard/Navx Value', navx);
 NetworkTables.addKeyListener('/SmartDashboard/Pot Value', pot);
 NetworkTables.addKeyListener('/FMSInfo/MatchTime', update_match_time);
+NetworkTables.addKeyListener('/SmartDashboard/autoSelect', update_auto_choice_display);
 
 function OnWindowLoad() {
   ultrasonicDown = new HotGraph("ultrasonic_down", 300);
@@ -90,6 +94,8 @@ function OnWindowLoad() {
   navxGraph = new HotGraph("navx", 300);
 }
 
+// Constantly set autonomous
+setTimeout(setAutonomous,  100);
 
 // Called when the robot connects
 function onRobotConnection(connected) {
@@ -114,6 +120,10 @@ function onRobotConnection(connected) {
 function Connect(address) {
   document.getElementById('ConnectionHeader').innerHTML = '<h1 id="header" class="uk-text-bold uk-text-warning"> Hotwire Dashboard </h1>';
   ipc.send('connect', address);
+}
+
+function setAutonomous() {
+  NetworkTables.putValue("/SmartDashboard/autoSelect", document.getElementById('autoSelect').value);
 }
 
 function setLogin() {

@@ -14,6 +14,7 @@ import edu.wpi.cscore.UsbCamera;
 import edu.wpi.first.cameraserver.CameraServer;
 
 import java.nio.Buffer;
+import java.rmi.server.Operation;
 
 import com.ctre.phoenix.motorcontrol.ControlMode;
 import com.ctre.phoenix.motorcontrol.can.TalonSRX;
@@ -71,12 +72,12 @@ public class Robot extends TimedRobot {
 	public Timer brakeTimer;
 
 	// Arm targets
-	public double groundTarget = 0.75;
-	public double shipCargoTarget = 0.57;
-	public double rocketCargoTargetBot = 0.62;
-	public double rocketCargoTargetMid = 0.56f;
-	public double hatchTarget = 0.73;
-
+	public double groundTarget = 0.84;
+	public double shipCargoTarget = 0.59;
+	public double rocketCargoTargetBot = 0.665;
+	public double rocketCargoTargetMid = 0.53f;
+	public double hatchTarget = 0.80; 
+	
 	// Climbing Variables
 	public float downForce = 0.0f;
 	public float ultraheight = 6.5f;
@@ -95,6 +96,10 @@ public class Robot extends TimedRobot {
 	public GearRack gearRackFrontOne = new GearRack("FGR1", 6, -1, 2, 5);
 	public GearRack gearRackBackOne = new GearRack("BGR1", 7, -1, 0, -1);
 	public GearRack gearRackBackTwo = new GearRack("BGR2", 8, 1, 1, -1);
+
+	enum AutoChoice {
+		Left, Right
+	}
 
 	enum RobotState {
 		Autonomous, Teleop;
@@ -131,7 +136,7 @@ public class Robot extends TimedRobot {
 		currentState = RobotState.Autonomous;
 
 		currentAutoStep = 0;
-		autonomous = new AutoStep[19];
+		autonomous = new AutoStep[21];
 
 		/*
 		 * // Auto off level 2
@@ -143,26 +148,62 @@ public class Robot extends TimedRobot {
 		 * new NavxTurn(driveTrain, navx, 5f, 0.5f);
 		 */
 
-		// Auto off level 1
+		AutoChoice autoChoice = AutoChoice.Left;
+		String auto = SmartDashboard.getString("autoSelect", "left");
+		if (auto.equals("left")) {
+			autoChoice = AutoChoice.Left;
+		} else if (auto.equals("right")) {
+			autoChoice = AutoChoice.Right;
+		}
+		System.out.println("AUTO CHOICE " + autoChoice + " networkTables " + auto);
+
+		// Auto off level 1 left
 		autonomous[0] = new TriggerArm(this, false);
 		autonomous[1] = new NavxReset(driveTrain, navx);
 		autonomous[2] = new TimedForward(driveTrain, 1.2f, 0.6f);
-		autonomous[3] = new Wait(driveTrain, 1.0f);
-		autonomous[4] = new LimelightTrack(driveTrain, this, LimelightPlacement.Place, 0);
-		autonomous[5] = new Wait(driveTrain, 0.3f);
-		autonomous[6] = new TimedForward(driveTrain, 0.22f, -0.8f);
-		autonomous[7] = new TriggerArm(this, false);
-		autonomous[8] = new NavxTurn(driveTrain, navx, -90.0f, 0.75f);
-		autonomous[9] = new TimedForward(driveTrain, 1.1f, 1.0f);
-		autonomous[10] = new Wait(driveTrain, 0.2f);
-		autonomous[11] = new LimelightTrack(driveTrain, this, LimelightPlacement.Pickup, -1);
-		autonomous[12] = new TimedForward(driveTrain, 0.6f, -0.8f);
-		autonomous[13] = new TriggerArm(this, false);
-		autonomous[14] = new TimedForward(driveTrain, 0.3f, -0.8f);
-		autonomous[15] = new NavxTurn(driveTrain, navx, -40.0f, 0.6f);
-		autonomous[16] = new TimedForward(driveTrain, 0.80f, 0.75f);
-		autonomous[17] = new LimelightTrack(driveTrain, this, LimelightPlacement.Place, -1);
-		autonomous[18] = new TimedForward(driveTrain, 0.5f, -0.4f);
+		autonomous[3] = new NavxTurn(driveTrain, navx, 0.0f, 0.6f);
+		autonomous[4] = new Wait(driveTrain, 1.0f);
+		autonomous[5] = new LimelightTrack(driveTrain, this, LimelightPlacement.Place, 0);
+		autonomous[6] = new Wait(driveTrain, 0.3f);
+		autonomous[7] = new TimedForward(driveTrain, 0.22f, -0.8f);
+		autonomous[8] = new TriggerArm(this, false);
+
+		if (autoChoice == AutoChoice.Left) {
+			autonomous[9] = new NavxTurn(driveTrain, navx, -80.0f, 0.75f);
+			autonomous[10] = new TimedForward(driveTrain, 1.15f, 1.0f);
+		} else {
+			autonomous[9] = new NavxTurn(driveTrain, navx, 80.0f, 0.75f);
+			autonomous[10] = new TimedForward(driveTrain, 1.10f, 1.0f);
+		}		
+		autonomous[11] = new Wait(driveTrain, 0.2f);
+
+		if (autoChoice == AutoChoice.Left) {
+			autonomous[12] = new LimelightTrack(driveTrain, this, LimelightPlacement.Pickup, -1);
+		} else {
+			autonomous[12] = new LimelightTrack(driveTrain, this, LimelightPlacement.Pickup, 1);
+		}
+		
+		autonomous[13] = new Wait(driveTrain, 0.5f);
+		autonomous[14] = new TimedForward(driveTrain, 0.5f, -0.8f);
+		autonomous[15] = new TriggerArm(this, false);
+		autonomous[16] = new TimedForward(driveTrain, 0.3f, -0.8f);
+
+		if (autoChoice == AutoChoice.Left) {
+			autonomous[17] = new NavxTurn(driveTrain, navx, -60.0f, 0.6f);
+		} else {
+			autonomous[17] = new NavxTurn(driveTrain, navx, 60.0f, 0.6f);
+		}
+
+		autonomous[18] = new TimedForward(driveTrain, 0.60f, 0.75f);
+
+		if (autoChoice == AutoChoice.Left) {
+			autonomous[19] = new LimelightTrack(driveTrain, this, LimelightPlacement.Place, -1);
+		} else {
+			autonomous[19] = new LimelightTrack(driveTrain, this, LimelightPlacement.Place, 1);
+		}
+		autonomous[20] = new TimedForward(driveTrain, 0.5f, -0.4f);
+
+		// auto right
 
 		autonomous[0].Begin();
 	}
@@ -227,7 +268,7 @@ public class Robot extends TimedRobot {
 
 		// System.out.println("Limit: " + intakeLimit.get());
 		// System.out.println("Navx Yaw:" + navx.getYaw());
-		System.out.println("Pot:  " + pot.get());
+		System.out.println("Pot: " + pot.get());
 		NetworkTable table = NetworkTableInstance.getDefault().getTable("limelight");
 		NetworkTableEntry tx = table.getEntry("tx");
 		NetworkTableEntry ty = table.getEntry("ty");
@@ -365,8 +406,17 @@ public class Robot extends TimedRobot {
 				}
 
 			} else {
-				compressor.start();
-				ControllerDrive();
+
+				if (driver.getRawButton(4)) {
+					if (ultrasonic.getRangeInches() < 5) {
+						driveTrain.SetBothSpeed(0.08f);
+					} else {
+						System.out.println("STOPPING");
+						driveTrain.SetBothSpeed(0.0f);
+					}
+				} else {
+					ControllerDrive();
+				}
 
 				// Arm Targets
 				if (povReleased == true && (operator.getPOV() != -1 || operator.getRawAxis(2) != 0)) {
@@ -449,7 +499,7 @@ public class Robot extends TimedRobot {
 							intakeTop.set(ControlMode.PercentOutput, -0.85f);
 							intakeBottom.set(ControlMode.PercentOutput, -0.2f);
 						} else {
-							intakeTop.set(ControlMode.PercentOutput, -0.65f);
+							intakeTop.set(ControlMode.PercentOutput, -0.5f);
 							intakeBottom.set(ControlMode.PercentOutput, 0.0f);
 						}
 					} else {
@@ -472,16 +522,22 @@ public class Robot extends TimedRobot {
 
 				if (operator.getRawAxis(5) < -0.8f) {
 					runArm = false;
-					ArmMove(0.8f);
+					ArmMove(0.65f);
 					DiskBrakeDisable();
 				} else if (operator.getRawAxis(5) > 0.8f) {
 					runArm = false;
-					ArmMove(-0.8f);
+					ArmMove(-0.65f);
 					DiskBrakeDisable();
 				} else if (!runArm) {
 					ArmMove(0f);
 				}
 
+				if (operator.getRawAxis(1) > 0.8 || operator.getRawAxis(1) < -0.8 || operator.getRawAxis(5) > 0.8
+						|| operator.getRawAxis(5) < -0.8) {
+					compressor.stop();
+				} else {
+					compressor.start();
+				}
 				if (driver.getRawButton(1)) {
 					Intake(-0.5f);
 				}
@@ -600,6 +656,11 @@ public class Robot extends TimedRobot {
 					} else {
 						downForce = 0.35f;
 					}
+
+					if (potTarget == shipCargoTarget) {
+						downForce += 0.2f;
+					}
+
 					ArmMove(downForce);
 
 				} else if (pot.get() < upperBuffer) {
@@ -609,12 +670,13 @@ public class Robot extends TimedRobot {
 
 					float downForce = 0.0f;
 					if (pot.get() < 0.58f) {
-						downForce = -0.17f; // downForce = -0.17f;
+						downForce = -0.2f; // downForce = -0.17f;
 					} else if (pot.get() < 0.64f) {
-						downForce = -0.05f; // downForce = -0.05f;
+						downForce = -0.15f; // downForce = -0.05f;
 					} else {
-						downForce = 0.0f; // downForce = 0.1f;
+						downForce = -0.1f; // downForce = 0.1f;
 					}
+
 					ArmMove(downForce);
 
 				} else {
@@ -630,7 +692,7 @@ public class Robot extends TimedRobot {
 				if (brakeTimer.get() > 0.1) {
 					ArmMove(0.1f);
 				} else {
-					ArmMove(0.3f);
+					ArmMove(0.1f);
 				}
 			}
 		}
@@ -662,12 +724,12 @@ public class Robot extends TimedRobot {
 		double maxTurnSpeed = 0.35f;
 
 		// approach
-		float approachTargetPlace = 4.2f;
-		float approachTargetPickup = 3.3f;
-		float approachCloseTA = 1.1f;
+		float approachTargetPlace = 4.7f;
+		float approachTargetPickup = 3.8f;
+		float approachCloseTA = 0.9f;
 		float approachFarTA = 0.162f;
 		float approachSpeedClose = 0.3f;
-		float approachSpeedFar = 0.75f;
+		float approachSpeedFar = 0.6f;
 
 		// reverse
 		float reverseSpeed = -0.5f;
