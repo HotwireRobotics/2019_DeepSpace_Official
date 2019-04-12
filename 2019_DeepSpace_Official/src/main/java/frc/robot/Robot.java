@@ -76,8 +76,9 @@ public class Robot extends TimedRobot {
 	public double shipCargoTarget = 0.59;
 	public double rocketCargoTargetBot = 0.665;
 	public double rocketCargoTargetMid = 0.53f;
-	public double hatchTarget = 0.80; 
-	
+	public double hatchTarget = 0.80;
+	public double climbTarget = 0.53;
+
 	// Climbing Variables
 	public float downForce = 0.0f;
 	public float ultraheight = 6.5f;
@@ -182,7 +183,7 @@ public class Robot extends TimedRobot {
 		} else {
 			autonomous[12] = new LimelightTrack(driveTrain, this, LimelightPlacement.Pickup, 1);
 		}
-		
+
 		autonomous[13] = new Wait(driveTrain, 0.5f);
 		autonomous[14] = new TimedForward(driveTrain, 0.5f, -0.8f);
 		autonomous[15] = new TriggerArm(this, false);
@@ -419,7 +420,7 @@ public class Robot extends TimedRobot {
 				}
 
 				// Arm Targets
-				if (povReleased == true && (operator.getPOV() != -1 || operator.getRawAxis(2) != 0)) {
+				if (povReleased == true && (operator.getPOV() != -1 || operator.getRawAxis(2) != 0) || operator.getRawAxis(3) != 0) {
 					povReleased = false;
 					armHold = false;
 					runArm = true;
@@ -449,6 +450,11 @@ public class Robot extends TimedRobot {
 						lowerBuffer = rocketCargoTargetMid + armBuffer;
 						upperBuffer = rocketCargoTargetMid - armBuffer;
 						potTarget = rocketCargoTargetMid;
+
+					} else if (operator.getRawAxis(3) > 0.0f) {
+						lowerBuffer = climbTarget + armBuffer;
+						upperBuffer = climbTarget - armBuffer;
+						potTarget = climbTarget;
 
 					}
 				}
@@ -657,7 +663,7 @@ public class Robot extends TimedRobot {
 						downForce = 0.35f;
 					}
 
-					if (potTarget == shipCargoTarget) {
+					if (potTarget == shipCargoTarget || potTarget == climbTarget) {
 						downForce += 0.2f;
 					}
 
