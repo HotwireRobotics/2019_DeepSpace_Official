@@ -40,7 +40,7 @@ public class Robot extends TimedRobot {
 	// Sensors
 	public AHRS navx = new AHRS(SPI.Port.kMXP);
 	public Ultrasonic ultrasonic = new Ultrasonic(4, 5);
-	public AnalogPotentiometer pot = new AnalogPotentiometer(0);
+	public HotPot pot = new HotPot(0);
 	public DigitalInput intakeLimit = new DigitalInput(9);
 	public Compressor compressor = new Compressor();
 
@@ -72,12 +72,12 @@ public class Robot extends TimedRobot {
 	public Timer brakeTimer;
 
 	// Arm targets
-	public double groundTarget = 0.84;
-	public double shipCargoTarget = 0.59;
-	public double rocketCargoTargetBot = 0.665;
-	public double rocketCargoTargetMid = 0.53f;
-	public double hatchTarget = 0.80;
-	public double climbTarget = 0.53;
+	public double groundTarget = 0.38;
+	public double shipCargoTarget = 0.08;
+	public double rocketCargoTargetBot = 0.18;
+	public double rocketCargoTargetMid = 0.05f;
+	public double hatchTarget = 0.35;
+	public double climbTarget = 0;
 
 	// Climbing Variables
 	public float downForce = 0.0f;
@@ -392,10 +392,8 @@ public class Robot extends TimedRobot {
 
 						int runningUpStopPosition = 100;
 						if (gearRackFrontOne.GetEncoderPosition() > runningUpStopPosition) {
-							System.out.println("RUNNING " + gearRackFrontOne.GetEncoderPosition());
 							gearRackFrontOne.SetMotorSpeed(1.0f);
 						} else {
-							System.out.println("STOPPING " + gearRackFrontOne.GetEncoderPosition());
 							gearRackFrontOne.SetMotorSpeed(0.0f);
 						}
 
@@ -415,7 +413,6 @@ public class Robot extends TimedRobot {
 					if (ultrasonic.getRangeInches() < 5) {
 						driveTrain.SetBothSpeed(0.08f);
 					} else {
-						System.out.println("STOPPING");
 						driveTrain.SetBothSpeed(0.0f);
 					}
 				} else {
@@ -657,20 +654,20 @@ public class Robot extends TimedRobot {
 					DiskBrakeDisable();
 					// ArmMove(0.25f);
 
-					float downForce = 0.0f;
-					if (pot.get() < 0.58f) {
-						downForce = 0.2f;
-					} else if (pot.get() < 0.64f) {
-						downForce = 0.4f;
+					float upForce = 0.0f;
+					if (pot.get() < 0.05f) {
+						upForce = 0.2f;
+					} else if (pot.get() < 0.11f) {
+						upForce = 0.4f;
 					} else {
-						downForce = 0.35f;
+						upForce = 0.35f;
 					}
 
 					if (potTarget == shipCargoTarget || potTarget == climbTarget) {
 						downForce += 0.2f;
 					}
 
-					ArmMove(downForce);
+					ArmMove(upForce);
 
 				} else if (pot.get() < upperBuffer) {
 					// moving down
@@ -678,12 +675,12 @@ public class Robot extends TimedRobot {
 					DiskBrakeDisable();
 
 					float downForce = 0.0f;
-					if (pot.get() < 0.58f) {
-						downForce = -0.2f; // downForce = -0.17f;
-					} else if (pot.get() < 0.64f) {
-						downForce = -0.15f; // downForce = -0.05f;
+					if (pot.get() < 0.05f) {
+						downForce = -0.2f;
+					} else if (pot.get() < 0.11f) {
+						downForce = -0.15f;
 					} else {
-						downForce = -0.1f; // downForce = 0.1f;
+						downForce = -0.1f;
 					}
 
 					ArmMove(downForce);
