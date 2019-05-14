@@ -118,7 +118,7 @@ public class Robot extends TimedRobot {
 
 	public void robotInit() {
 		ultrasonic.setAutomaticMode(true);
-
+		NetworkTableInstance.getDefault().getTable("limelight").getEntry("stream").setNumber(2);
 	}
 
 	public void disabledInit() {
@@ -129,6 +129,7 @@ public class Robot extends TimedRobot {
 	}
 
 	public void autonomousInit() {
+		NetworkTableInstance.getDefault().getTable("limelight").getEntry("stream").setNumber(2);
 
 		ArmMove(0);
 		brakeTimer = new Timer();
@@ -170,11 +171,11 @@ public class Robot extends TimedRobot {
 		autonomous[8] = new TriggerArm(this, false);
 
 		if (autoChoice == AutoChoice.Left) {
-			autonomous[9] = new NavxTurn(driveTrain, navx, -80.0f, 0.75f);
-			autonomous[10] = new TimedForward(driveTrain, 1.15f, 1.0f);
+			autonomous[9] = new NavxTurn(driveTrain, navx, -100.0f, 0.75f);
+			autonomous[10] = new TimedForward(driveTrain, 0.98f, 1.0f);
 		} else {
-			autonomous[9] = new NavxTurn(driveTrain, navx, 80.0f, 0.75f);
-			autonomous[10] = new TimedForward(driveTrain, 1.10f, 1.0f);
+			autonomous[9] = new NavxTurn(driveTrain, navx, 100.0f, 0.75f);
+			autonomous[10] = new TimedForward(driveTrain, 0.98f, 1.0f);
 		}		
 		autonomous[11] = new Wait(driveTrain, 0.2f);
 
@@ -187,7 +188,7 @@ public class Robot extends TimedRobot {
 		autonomous[13] = new Wait(driveTrain, 0.5f);
 		autonomous[14] = new TimedForward(driveTrain, 0.5f, -0.8f);
 		autonomous[15] = new TriggerArm(this, false);
-		autonomous[16] = new TimedForward(driveTrain, 0.3f, -0.8f);
+		autonomous[16] = new TimedForward(driveTrain, 0.5f, -0.8f);
 
 		if (autoChoice == AutoChoice.Left) {
 			autonomous[17] = new NavxTurn(driveTrain, navx, -60.0f, 0.6f);
@@ -214,6 +215,8 @@ public class Robot extends TimedRobot {
 	}
 
 	public void teleopInit() {
+		NetworkTableInstance.getDefault().getTable("limelight").getEntry("stream").setNumber(2);
+
 		brakeTimer = new Timer();
 		brakeTimer.start();
 
