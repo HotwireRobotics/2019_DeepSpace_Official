@@ -40,7 +40,7 @@ public class Robot extends TimedRobot {
 	// Sensors
 	public AHRS navx = new AHRS(SPI.Port.kMXP);
 	public Ultrasonic ultrasonic = new Ultrasonic(4, 5);
-	public HotPot pot = new HotPot(0);
+	public HotPot pot = new HotPot(1);
 	public DigitalInput intakeLimit = new DigitalInput(9);
 	public Compressor compressor = new Compressor();
 
