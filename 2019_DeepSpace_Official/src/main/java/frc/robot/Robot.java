@@ -68,15 +68,15 @@ public class Robot extends TimedRobot {
 	public boolean povReleased = false;
 	public double potTarget = 0;
 	public double currentBuffer;
-	public double armBuffer = 0.005f;
+	public double armBuffer = 0.2f;
 	public Timer brakeTimer;
 
 	// Arm targets
-	public double groundTarget = 0.38;
-	public double shipCargoTarget = 0.08;
-	public double rocketCargoTargetBot = 0.18;
-	public double rocketCargoTargetMid = 0.05f;
-	public double hatchTarget = 0.35;
+	public double groundTarget = 10.15;
+	public double shipCargoTarget = 3.1;
+	public double rocketCargoTargetBot = 5.8;
+	public double rocketCargoTargetMid = 2.4;
+	public double hatchTarget = 8.7;
 	public double climbTarget = 0;
 
 	// Climbing Variables
@@ -655,18 +655,20 @@ public class Robot extends TimedRobot {
 					// ArmMove(0.25f);
 
 					float upForce = 0.0f;
-					if (pot.get() < 0.05f) {
+					if (pot.get() < 1.0f) {
 						upForce = 0.2f;
-					} else if (pot.get() < 0.11f) {
+					} else if (pot.get() < 6.0f) {
 						upForce = 0.4f;
 					} else {
 						upForce = 0.35f;
 					}
 
-					if (potTarget == shipCargoTarget || potTarget == climbTarget) {
-						downForce += 0.2f;
+					if (potTarget == shipCargoTarget) {
+						upForce += 0.2f;
 					}
-
+					if (potTarget == climbTarget) {
+						upForce += 0.1f;
+					}
 					ArmMove(upForce);
 
 				} else if (pot.get() < upperBuffer) {
@@ -675,9 +677,9 @@ public class Robot extends TimedRobot {
 					DiskBrakeDisable();
 
 					float downForce = 0.0f;
-					if (pot.get() < 0.05f) {
+					if (pot.get() < 1.0f) {
 						downForce = -0.2f;
-					} else if (pot.get() < 0.11f) {
+					} else if (pot.get() < 6.0f) {
 						downForce = -0.15f;
 					} else {
 						downForce = -0.1f;
