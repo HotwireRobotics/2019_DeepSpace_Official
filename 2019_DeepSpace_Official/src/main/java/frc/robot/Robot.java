@@ -68,15 +68,15 @@ public class Robot extends TimedRobot {
 	public boolean povReleased = false;
 	public double potTarget = 0;
 	public double currentBuffer;
-	public double armBuffer = 0.2f;
+	public double armBuffer = 1f;
 	public Timer brakeTimer;
 
 	// Arm targets
-	public double groundTarget = 10.15;
-	public double shipCargoTarget = 3.1;
-	public double rocketCargoTargetBot = 5.8;
-	public double rocketCargoTargetMid = 2.4;
-	public double hatchTarget = 8.7;
+	public double groundTarget = 109;
+	public double shipCargoTarget = 22;
+	public double rocketCargoTargetBot = 60;
+	public double rocketCargoTargetMid = 60;
+	public double hatchTarget = 95;
 	public double climbTarget = 0;
 
 	// Climbing Variables
@@ -593,8 +593,8 @@ public class Robot extends TimedRobot {
 	}
 
 	public void ControllerDrive() {
-		float horJoystick = TranslateController((float) driver.getRawAxis(0));
-		float verJoystick = TranslateController((float) driver.getRawAxis(5));
+		float horJoystick = TranslateController((float) driver.getRawAxis(4)); // 0
+		float verJoystick = TranslateController((float) driver.getRawAxis(1)); // 5
 
 		driveTrain.SetRightSpeed(-verJoystick + -horJoystick);
 		driveTrain.SetLeftSpeed(-verJoystick + horJoystick);
@@ -655,9 +655,9 @@ public class Robot extends TimedRobot {
 					// ArmMove(0.25f);
 
 					float upForce = 0.0f;
-					if (pot.get() < 1.0f) {
+					if (pot.get() < 15) {
 						upForce = 0.2f;
-					} else if (pot.get() < 6.0f) {
+					} else if (pot.get() < 20) {
 						upForce = 0.4f;
 					} else {
 						upForce = 0.35f;
@@ -677,9 +677,9 @@ public class Robot extends TimedRobot {
 					DiskBrakeDisable();
 
 					float downForce = 0.0f;
-					if (pot.get() < 1.0f) {
+					if (pot.get() < 14) {
 						downForce = -0.2f;
-					} else if (pot.get() < 6.0f) {
+					} else if (pot.get() < 20) {
 						downForce = -0.15f;
 					} else {
 						downForce = -0.1f;

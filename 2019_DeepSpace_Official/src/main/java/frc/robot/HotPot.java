@@ -5,14 +5,14 @@ import edu.wpi.first.wpilibj.AnalogPotentiometer;
 
 public class HotPot {
 
-    public double potHomeValue = 1126.6;
+    public double potHomeValue = 40.6;
     public AnalogPotentiometer pot;
 
-    public HotPot(int potIndex){
+    public HotPot(int potIndex) {
         pot = new AnalogPotentiometer(potIndex);
     }
 
-    public double get(){
-        return((pot.get()  + 1) * 1000  - potHomeValue);
+    public double get() {
+        return ((pot.get()) * 1000 - potHomeValue);
     }
 }
