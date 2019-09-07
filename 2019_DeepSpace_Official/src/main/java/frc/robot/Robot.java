@@ -491,6 +491,12 @@ public class Robot extends TimedRobot {
 					// Turn off limelight
 					NetworkTableInstance.getDefault().getTable("limelight").getEntry("ledMode").setNumber(3);
 
+					//disbrake manual
+					//TODO delete me
+					/*if (operator.getRawButtonPressed(2)){
+						DiskBrakeEnable();
+					}*/
+
 					// Intake
 					if (operator.getRawButton(1)) {
 						if (intakeLimit.get() == false) {
