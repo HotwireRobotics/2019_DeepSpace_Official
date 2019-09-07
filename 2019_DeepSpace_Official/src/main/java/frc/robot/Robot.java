@@ -57,6 +57,7 @@ public class Robot extends TimedRobot {
 	public Joystick driver;
 	public Joystick operator;
 	public Joystick debug;
+	public boolean arcadeDrive = false;
 
 	// Arm
 	public TalonSRX armLeft = new TalonSRX(3);
@@ -599,22 +600,23 @@ public class Robot extends TimedRobot {
 	}
 
 	public void ControllerDrive() {
-		
-		//Arcade
-		/*float horJoystick = TranslateController((float) driver.getRawAxis(4)); // 0   4
-		float verJoystick = TranslateController((float) driver.getRawAxis(1)); // 5   1
+		if (arcadeDrive) {
+			//Arcade
+			float horJoystick = TranslateController((float) driver.getRawAxis(4)); // 0   4
+			float verJoystick = TranslateController((float) driver.getRawAxis(1)); // 5   1
 
-		driveTrain.SetRightSpeed(-verJoystick + -horJoystick);
-		driveTrain.SetLeftSpeed(-verJoystick + horJoystick);
-		driveTrain.SetCoast();*/
+			driveTrain.SetRightSpeed(-verJoystick + -horJoystick);
+			driveTrain.SetLeftSpeed(-verJoystick + horJoystick);
+			driveTrain.SetCoast();
+		} else {
+			//tank
+			float leftJoystick = TranslateController((float) driver.getRawAxis(1)); // 0   4
+			float rightJoystick = TranslateController((float) driver.getRawAxis(5)); // 5   1
 
-		//tank
-		float leftJoystick = TranslateController((float) driver.getRawAxis(1)); // 0   4
-		float rightJoystick = TranslateController((float) driver.getRawAxis(5)); // 5   1
-
-		driveTrain.SetRightSpeed(-rightJoystick);
-		driveTrain.SetLeftSpeed(-leftJoystick);
-		driveTrain.SetCoast();
+			driveTrain.SetRightSpeed(-rightJoystick);
+			driveTrain.SetLeftSpeed(-leftJoystick);
+			driveTrain.SetCoast();
+		}
 	}
 
 	public void Intake(float speeed) {
