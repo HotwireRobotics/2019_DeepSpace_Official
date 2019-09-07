@@ -599,11 +599,21 @@ public class Robot extends TimedRobot {
 	}
 
 	public void ControllerDrive() {
-		float horJoystick = TranslateController((float) driver.getRawAxis(4)); // 0   4
+		
+		//Arcade
+		/*float horJoystick = TranslateController((float) driver.getRawAxis(4)); // 0   4
 		float verJoystick = TranslateController((float) driver.getRawAxis(1)); // 5   1
 
 		driveTrain.SetRightSpeed(-verJoystick + -horJoystick);
 		driveTrain.SetLeftSpeed(-verJoystick + horJoystick);
+		driveTrain.SetCoast();*/
+
+		//tank
+		float leftJoystick = TranslateController((float) driver.getRawAxis(1)); // 0   4
+		float rightJoystick = TranslateController((float) driver.getRawAxis(5)); // 5   1
+
+		driveTrain.SetRightSpeed(-rightJoystick);
+		driveTrain.SetLeftSpeed(-leftJoystick);
 		driveTrain.SetCoast();
 	}
 
