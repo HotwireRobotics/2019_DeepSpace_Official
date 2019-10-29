@@ -48,8 +48,8 @@ public class Robot extends TimedRobot {
 	public DriveTrain driveTrain = new DriveTrain(0, 1, 2, 3, navx);
 
 	// neumatics
-	public DoubleSolenoid hatch = new DoubleSolenoid(4, 5);
-	public DoubleSolenoid diskBrake = new DoubleSolenoid(2, 3);
+	public DoubleSolenoid hatch = new DoubleSolenoid(5, 4);
+	public DoubleSolenoid diskBrake = new DoubleSolenoid(3, 2);
 	public boolean buttonReleased;
 	public boolean hatchReleased;
 
@@ -58,6 +58,8 @@ public class Robot extends TimedRobot {
 	public Joystick operator;
 	public Joystick debug;
 	public boolean arcadeDrive = false;
+	public Joystick flightStickLeft;
+	public Joystick flightStickRight;
 
 	// Arm
 	public TalonSRX armLeft = new TalonSRX(3);
@@ -73,11 +75,11 @@ public class Robot extends TimedRobot {
 	public Timer brakeTimer;
 
 	// Arm targets
-	public double groundTarget = 109;
-	public double shipCargoTarget = 22;
-	public double rocketCargoTargetBot = 60;
+	public double groundTarget = 113;
+	public double shipCargoTarget = 30;
+	public double rocketCargoTargetBot = 65;
 	public double rocketCargoTargetMid = 60;
-	public double hatchTarget = 95;
+	public double hatchTarget = 108;
 	public double climbTarget = 0;
 
 	// Climbing Variables
@@ -132,6 +134,7 @@ public class Robot extends TimedRobot {
 	public void autonomousInit() {
 		NetworkTableInstance.getDefault().getTable("limelight").getEntry("stream").setNumber(2);
 
+		driveTrain.SetBreak();
 		ArmMove(0);
 		brakeTimer = new Timer();
 		brakeTimer.start();
@@ -172,12 +175,12 @@ public class Robot extends TimedRobot {
 		autonomous[8] = new TriggerArm(this, false);
 
 		if (autoChoice == AutoChoice.Left) {
-			autonomous[9] = new NavxTurn(driveTrain, navx, -100.0f, 0.75f);
+			autonomous[9] = new NavxTurn(driveTrain, navx, -100.0f, 0.5f);
 			autonomous[10] = new TimedForward(driveTrain, 0.98f, 1.0f);
 		} else {
-			autonomous[9] = new NavxTurn(driveTrain, navx, 100.0f, 0.75f);
+			autonomous[9] = new NavxTurn(driveTrain, navx, 100.0f, 0.5f);
 			autonomous[10] = new TimedForward(driveTrain, 0.98f, 1.0f);
-		}		
+		}
 		autonomous[11] = new Wait(driveTrain, 0.2f);
 
 		if (autoChoice == AutoChoice.Left) {
@@ -189,7 +192,7 @@ public class Robot extends TimedRobot {
 		autonomous[13] = new Wait(driveTrain, 0.5f);
 		autonomous[14] = new TimedForward(driveTrain, 0.5f, -0.8f);
 		autonomous[15] = new TriggerArm(this, false);
-		autonomous[16] = new TimedForward(driveTrain, 0.5f, -0.8f);
+		autonomous[16] = new TimedForward(driveTrain, 0.4f, -0.8f);
 
 		if (autoChoice == AutoChoice.Left) {
 			autonomous[17] = new NavxTurn(driveTrain, navx, -60.0f, 0.6f);
@@ -233,6 +236,8 @@ public class Robot extends TimedRobot {
 		debug = new Joystick(3);
 		driver = new Joystick(0);
 		operator = new Joystick(1);
+		flightStickLeft = new Joystick(3);
+		flightStickRight = new Joystick(2);
 	}
 
 	public void teleopPeriodic() {
@@ -249,6 +254,8 @@ public class Robot extends TimedRobot {
 		debug = new Joystick(3);
 		driver = new Joystick(0);
 		operator = new Joystick(1);
+		flightStickLeft = new Joystick(3);
+		flightStickRight = new Joystick(2);
 
 		DiskBrakeDisable();
 		HatchHold();
@@ -307,6 +314,8 @@ public class Robot extends TimedRobot {
 		SmartDashboard.putNumber("Navx Value", navx.getYaw());
 
 		if (currentState == RobotState.Teleop) {
+
+			System.out.println("WORKING");
 
 			// Climbing
 
@@ -410,7 +419,7 @@ public class Robot extends TimedRobot {
 
 			} else {
 
-				if (driver.getRawButton(4)) {
+				if (flightStickLeft.getRawButton(1) || flightStickRight.getRawButton(1)) {
 					if (ultrasonic.getRangeInches() < 5) {
 						driveTrain.SetBothSpeed(0.08f);
 					} else {
@@ -421,7 +430,8 @@ public class Robot extends TimedRobot {
 				}
 
 				// Arm Targets
-				if (povReleased == true && (operator.getPOV() != -1 || operator.getRawAxis(2) != 0) || operator.getRawAxis(3) != 0) {
+				if (povReleased == true && (operator.getPOV() != -1 || operator.getRawAxis(2) != 0)
+						|| operator.getRawAxis(3) != 0) {
 					povReleased = false;
 					armHold = false;
 					runArm = true;
@@ -492,11 +502,11 @@ public class Robot extends TimedRobot {
 					// Turn off limelight
 					NetworkTableInstance.getDefault().getTable("limelight").getEntry("ledMode").setNumber(3);
 
-					//disbrake manual
-					//TODO delete me
-					/*if (operator.getRawButtonPressed(2)){
-						DiskBrakeEnable();
-					}*/
+					// disbrake manual
+					// TODO delete me
+
+					 if (operator.getRawButtonPressed(2)){ DiskBrakeEnable(); }
+					 
 
 					// Intake
 					if (operator.getRawButton(1)) {
@@ -551,7 +561,7 @@ public class Robot extends TimedRobot {
 				} else {
 					compressor.start();
 				}
-				if (driver.getRawButton(1)) {
+				if (flightStickLeft.getRawButton(2) || flightStickRight.getRawButton(2)) {
 					Intake(-0.5f);
 				}
 			}
@@ -601,17 +611,19 @@ public class Robot extends TimedRobot {
 
 	public void ControllerDrive() {
 		if (arcadeDrive) {
-			//Arcade
-			float horJoystick = TranslateController((float) driver.getRawAxis(4)); // 0   4
-			float verJoystick = TranslateController((float) driver.getRawAxis(1)); // 5   1
+			// Arcade
+			float horJoystick = TranslateController((float) driver.getRawAxis(4)); // 0 4
+			float verJoystick = TranslateController((float) driver.getRawAxis(1)); // 5 1
 
 			driveTrain.SetRightSpeed(-verJoystick + -horJoystick);
 			driveTrain.SetLeftSpeed(-verJoystick + horJoystick);
 			driveTrain.SetCoast();
 		} else {
-			//tank
-			float leftJoystick = TranslateController((float) driver.getRawAxis(1)); // 0   4
-			float rightJoystick = TranslateController((float) driver.getRawAxis(5)); // 5   1
+			// tank
+			float leftJoystick = (float) flightStickLeft.getRawAxis(1);
+			float rightJoystick = (float) flightStickRight.getRawAxis(1);
+			//float leftJoystick = TranslateController((float) driver.getRawAxis(1)); // 0 4
+			//float rightJoystick = TranslateController((float) driver.getRawAxis(5)); // 5 1
 
 			driveTrain.SetRightSpeed(-rightJoystick);
 			driveTrain.SetLeftSpeed(-leftJoystick);
@@ -661,6 +673,9 @@ public class Robot extends TimedRobot {
 	}
 
 	public void RunArmControls() {
+		System.out.println("Lower " + lowerBuffer);
+		System.out.println("Upper " + upperBuffer);
+
 		if (runArm) {
 			if (!armHold) {
 
@@ -750,7 +765,7 @@ public class Robot extends TimedRobot {
 		double maxTurnSpeed = 0.35f;
 
 		// approach
-		float approachTargetPlace = 4.7f;
+		float approachTargetPlace = 4.7f;//4.7f
 		float approachTargetPickup = 3.8f;
 		float approachCloseTA = 0.9f;
 		float approachFarTA = 0.162f;
