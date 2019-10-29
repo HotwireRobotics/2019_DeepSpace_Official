@@ -132,7 +132,7 @@ public class Robot extends TimedRobot {
 	}
 
 	public void autonomousInit() {
-		NetworkTableInstance.getDefault().getTable("limelight").getEntry("stream").setNumber(2);
+		NetworkTableInstance.getDefault().getTable("limelight").getEntry("stream").setNumber(1);
 
 		driveTrain.SetBreak();
 		ArmMove(0);
