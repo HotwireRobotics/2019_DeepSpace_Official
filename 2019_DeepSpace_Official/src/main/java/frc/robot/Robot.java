@@ -469,6 +469,35 @@ public class Robot extends TimedRobot {
 
 					}
 				}
+				//Arm Target for driver
+				if (povReleased == true && driver.getPOV() != -1) {
+					povReleased = false;
+					armHold = false;
+					runArm = true;
+					DiskBrakeDisable();
+
+					if (driver.getPOV() == 0) {
+						lowerBuffer = rocketCargoTargetBot + armBuffer;
+						upperBuffer = rocketCargoTargetBot - armBuffer;
+						potTarget = rocketCargoTargetBot;
+
+					} else if (driver.getPOV() == 180) {
+						lowerBuffer = groundTarget;
+						upperBuffer = groundTarget - armBuffer;
+						potTarget = groundTarget;
+
+					} else if (driver.getPOV() == 90) {
+						lowerBuffer = shipCargoTarget + armBuffer;
+						upperBuffer = shipCargoTarget - armBuffer;
+						potTarget = shipCargoTarget;
+
+					} else if (driver.getPOV() == 270) {
+						lowerBuffer = hatchTarget + armBuffer;
+						upperBuffer = hatchTarget - armBuffer;
+						potTarget = hatchTarget;
+
+					} 
+				}
 				if (operator.getPOV() == -1) {
 					povReleased = true;
 				}
