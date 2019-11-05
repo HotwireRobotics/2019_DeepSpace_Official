@@ -49,7 +49,8 @@ public class Robot extends TimedRobot {
 
 	// neumatics
 	public DoubleSolenoid hatch = new DoubleSolenoid(5, 4);
-	public DoubleSolenoid diskBrake = new DoubleSolenoid(3, 2);
+	public DoubleSolenoid dis
+	kBrake = new DoubleSolenoid(3, 2);
 	public boolean buttonReleased;
 	public boolean hatchReleased;
 
@@ -57,7 +58,7 @@ public class Robot extends TimedRobot {
 	public Joystick driver;
 	public Joystick operator;
 	public Joystick debug;
-	public boolean arcadeDrive = false;
+	public boolean arcadeDrive = true;
 	public Joystick flightStickLeft;
 	public Joystick flightStickRight;
 
@@ -592,6 +593,64 @@ public class Robot extends TimedRobot {
 				}
 				if (flightStickLeft.getRawButton(2) || flightStickRight.getRawButton(2)) {
 					Intake(-0.5f);
+				}
+				if (driver.getRawButton(1)) {
+					Intake(-0.5f);
+				}
+			}
+
+			//Driver op
+			if(driver.getRawButtonPressed(5)) {
+				if(potTarget == hatchTarget){
+					HatchHold();
+				}
+			}
+			if(driver.getRawAxis(2) >= 0.25f){
+				if(potTarget == hatchTarget){
+					HatchRelease();
+				}
+			}
+
+			if (driver.getRawButton(6) || driver.getRawAxis(3) >= .25) {
+				if (potTarget == hatchTarget) {
+					if (driver.getRawButtonPressed(6) || driver.getRawAxis(3) >= .25) {
+						hitTarget = false;
+					}
+
+					if (operator.getRawButton(6)) {
+						Limelight(LimelightPlacement.Place);
+					} else {
+						Limelight(LimelightPlacement.Pickup);
+					}
+
+				} else if (potTarget == groundTarget || potTarget == rocketCargoTargetBot || potTarget == rocketCargoTargetMid || potTarget == shipCargoTarget) {
+
+					// Turn off limelight
+					NetworkTableInstance.getDefault().getTable("limelight").getEntry("ledMode").setNumber(3);
+
+					// Intake
+					if (driver.getRawButton(6)) {
+						if (intakeLimit.get() == false) {
+							Intake(0.9f);
+						} else {
+							Intake(0.0f);
+						}
+					} else if (driver.getRawAxis(3) >= .25f) {
+						if (potTarget == rocketCargoTargetBot) {
+							Outtake(0.6f);
+						} else if (potTarget == rocketCargoTargetMid) {
+							intakeTop.set(ControlMode.PercentOutput, -0.85f);
+							intakeBottom.set(ControlMode.PercentOutput, -0.2f);
+						} else {
+							intakeTop.set(ControlMode.PercentOutput, -0.5f);
+							intakeBottom.set(ControlMode.PercentOutput, 0.0f);
+						}
+					} else {
+						Outtake(0.0f);
+					}
+				} else {
+					// Turn off limelight
+					NetworkTableInstance.getDefault().getTable("limelight").getEntry("ledMode").setNumber(3);
 				}
 			}
 
