@@ -430,38 +430,49 @@ public class Robot extends TimedRobot {
 				}
 
 				// Arm Targets
-				if (povReleased == true && driver.getPOV() != -1) {
+				if (povReleased == true && (operator.getPOV() != -1 || operator.getRawAxis(2) != 0)
+						|| operator.getRawAxis(3) != 0) {
 					povReleased = false;
 					armHold = false;
 					runArm = true;
 					DiskBrakeDisable();
 
-					if (driver.getPOV() == 0) {
+					if (operator.getPOV() == 0) {
 						lowerBuffer = rocketCargoTargetBot + armBuffer;
 						upperBuffer = rocketCargoTargetBot - armBuffer;
 						potTarget = rocketCargoTargetBot;
 
-					} else if (driver.getPOV() == 180) {
+					} else if (operator.getPOV() == 180) {
 						lowerBuffer = groundTarget;
 						upperBuffer = groundTarget - armBuffer;
 						potTarget = groundTarget;
 
-					} else if (driver.getPOV() == 90) {
+					} else if (operator.getPOV() == 90) {
 						lowerBuffer = shipCargoTarget + armBuffer;
 						upperBuffer = shipCargoTarget - armBuffer;
 						potTarget = shipCargoTarget;
 
-					} else if (driver.getPOV() == 270) {
+					} else if (operator.getPOV() == 270) {
 						lowerBuffer = hatchTarget + armBuffer;
 						upperBuffer = hatchTarget - armBuffer;
 						potTarget = hatchTarget;
 
-					} 
+					} else if (operator.getRawAxis(2) > 0.0f) {
+						lowerBuffer = rocketCargoTargetMid + armBuffer;
+						upperBuffer = rocketCargoTargetMid - armBuffer;
+						potTarget = rocketCargoTargetMid;
+
+					} else if (operator.getRawAxis(3) > 0.0f) {
+						lowerBuffer = climbTarget + armBuffer;
+						upperBuffer = climbTarget - armBuffer;
+						potTarget = climbTarget;
+
+					}
 				}
-				if (driver.getPOV() == -1 && operator.getPOV() == -1) {
+				if (operator.getPOV() == -1) {
 					povReleased = true;
 				}
-				
+
 				RunArmControls();
 
 				// Hatch
