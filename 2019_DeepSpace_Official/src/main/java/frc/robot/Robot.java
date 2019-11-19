@@ -170,11 +170,11 @@ public class Robot extends TimedRobot {
 		autonomous[8] = new TriggerArm(this, false);
 
 		if (autoChoice == AutoChoice.Left) {
-			autonomous[9] = new NavxTurn(driveTrain, navx, -80.0f, 0.75f);
-			autonomous[10] = new TimedForward(driveTrain, 1.15f, 1.0f);
+			autonomous[9] = new NavxTurn(driveTrain, navx, -100.0f, 0.75f);
+			autonomous[10] = new TimedForward(driveTrain, 0.98f, 1.0f);
 		} else {
-			autonomous[9] = new NavxTurn(driveTrain, navx, 80.0f, 0.75f);
-			autonomous[10] = new TimedForward(driveTrain, 1.10f, 1.0f);
+			autonomous[9] = new NavxTurn(driveTrain, navx, 100.0f, 0.75f);
+			autonomous[10] = new TimedForward(driveTrain, 0.98f, 1.0f);
 		}		
 		autonomous[11] = new Wait(driveTrain, 0.2f);
 
@@ -187,7 +187,7 @@ public class Robot extends TimedRobot {
 		autonomous[13] = new Wait(driveTrain, 0.5f);
 		autonomous[14] = new TimedForward(driveTrain, 0.5f, -0.8f);
 		autonomous[15] = new TriggerArm(this, false);
-		autonomous[16] = new TimedForward(driveTrain, 0.3f, -0.8f);
+		autonomous[16] = new TimedForward(driveTrain, 0.5f, -0.8f);
 
 		if (autoChoice == AutoChoice.Left) {
 			autonomous[17] = new NavxTurn(driveTrain, navx, -60.0f, 0.6f);
@@ -269,7 +269,7 @@ public class Robot extends TimedRobot {
 
 		// System.out.println("Limit: " + intakeLimit.get());
 		// System.out.println("Navx Yaw:" + navx.getYaw());
-		System.out.println("Pot: " + pot.get());
+		// System.out.println("Pot: " + pot.get());
 		NetworkTable table = NetworkTableInstance.getDefault().getTable("limelight");
 		NetworkTableEntry tx = table.getEntry("tx");
 		NetworkTableEntry ty = table.getEntry("ty");
@@ -294,7 +294,7 @@ public class Robot extends TimedRobot {
 	}
 
 	public void RobotLoop() {
-		System.out.println("Pot:  " + pot.get());
+		// System.out.println("Pot:  " + pot.get());
 		gearRackBackOne.Write();
 		gearRackBackTwo.Write();
 		gearRackFrontOne.Write();
@@ -355,20 +355,20 @@ public class Robot extends TimedRobot {
 
 					if (navx.getRoll() < rollTarget) {
 						backSpeed = backSpeed + rollAdjustment;
-						System.out.println("Adjusting Roll up");
+						// System.out.println("Adjusting Roll up");
 					} else if (navx.getRoll() > -rollTarget) {
 						backSpeed = backSpeed - rollAdjustment;
-						System.out.println("Adjusting Roll down");
+						// System.out.println("Adjusting Roll down");
 					}
 
 					gearRackFrontOne.SetMotorSpeed(frontSpeed);
 					gearRackBackOne.SetMotorSpeed(backSpeed);
 					gearRackBackTwo.SetMotorSpeed(backSpeed);
 
-					System.out.println("Going up");
+					// System.out.println("Going up");
 
 					if (checkPlatform) {
-						System.out.println("Checking for platform");
+						// System.out.println("Checking for platform");
 						float platformUltraHeight = 5;
 						if (ultrasonic.getRangeInches() < platformUltraHeight) {
 							foundPlatform = true;
@@ -378,7 +378,7 @@ public class Robot extends TimedRobot {
 
 				if (foundPlatform) {
 
-					System.out.println("Found Platform");
+					// System.out.println("Found Platform");
 
 					if (operator.getRawAxis(3) > 0.1) {
 						driveTrain.SetBothSpeed(0.0f);
@@ -389,10 +389,10 @@ public class Robot extends TimedRobot {
 
 						int runningUpStopPosition = 100;
 						if (gearRackFrontOne.GetEncoderPosition() > runningUpStopPosition) {
-							System.out.println("RUNNING " + gearRackFrontOne.GetEncoderPosition());
+							// System.out.println("RUNNING " + gearRackFrontOne.GetEncoderPosition());
 							gearRackFrontOne.SetMotorSpeed(1.0f);
 						} else {
-							System.out.println("STOPPING " + gearRackFrontOne.GetEncoderPosition());
+							// System.out.println("STOPPING " + gearRackFrontOne.GetEncoderPosition());
 							gearRackFrontOne.SetMotorSpeed(0.0f);
 						}
 
@@ -412,7 +412,7 @@ public class Robot extends TimedRobot {
 					if (ultrasonic.getRangeInches() < 5) {
 						driveTrain.SetBothSpeed(0.08f);
 					} else {
-						System.out.println("STOPPING");
+						// System.out.println("STOPPING");
 						driveTrain.SetBothSpeed(0.0f);
 					}
 				} else {
@@ -555,7 +555,7 @@ public class Robot extends TimedRobot {
 				currentState = RobotState.Teleop;
 			}
 
-			System.out.println("Current auto step " + currentAutoStep);
+			// System.out.println("Current auto step " + currentAutoStep);
 			if (currentAutoStep < autonomous.length) {
 
 				autonomous[currentAutoStep].Update();
@@ -567,7 +567,7 @@ public class Robot extends TimedRobot {
 					}
 				}
 			} else {
-				System.out.println("Autonomous Done");
+				// System.out.println("Autonomous Done");
 				driveTrain.SetBothSpeed(0.0f);
 				// currentState = RobotState.Teleop;
 			}
@@ -748,7 +748,7 @@ public class Robot extends TimedRobot {
 			NetworkTableInstance.getDefault().getTable("limelight").getEntry("ledMode").setNumber(3);
 
 			if (value == 0) {
-				System.out.println("no target");
+				// System.out.println("no target");
 				driveTrain.SetBothSpeed(0.0f);
 
 			} else {
@@ -770,7 +770,7 @@ public class Robot extends TimedRobot {
 						HatchRelease();
 					}
 
-					System.out.println("Limelight Turning Right");
+					// System.out.println("Limelight Turning Right");
 
 					driveTrain.SetLeftSpeed(turnSpeed);
 					driveTrain.SetRightSpeed(-turnSpeed);
@@ -781,7 +781,7 @@ public class Robot extends TimedRobot {
 					} else {
 						HatchRelease();
 					}
-					System.out.println("Limelight Turning Left");
+					// System.out.println("Limelight Turning Left");
 
 					driveTrain.SetLeftSpeed(-turnSpeed);
 					driveTrain.SetRightSpeed(turnSpeed);
