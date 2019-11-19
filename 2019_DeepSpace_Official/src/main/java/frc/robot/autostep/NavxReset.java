@@ -21,8 +21,6 @@ public class NavxReset extends AutoStep {
         navxTime.reset();
         navxTime.start();
         navx.reset();
-
-
     }
 
     public void Update() {
