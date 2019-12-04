@@ -57,9 +57,10 @@ public class Robot extends TimedRobot {
 	public Joystick driver;
 	public Joystick operator;
 	public Joystick debug;
-	public boolean arcadeDrive = true;
+	public boolean arcadeDrive = false;
 	public Joystick flightStickLeft;
 	public Joystick flightStickRight;
+	public float halfSpeed = 1;
 
 	// Arm
 	public TalonSRX armLeft = new TalonSRX(3);
@@ -107,6 +108,10 @@ public class Robot extends TimedRobot {
 
 	enum RobotState {
 		Autonomous, Teleop;
+	}
+
+	public enum DriveScale {
+		linear, parabala, tangent, cb, cbrt, 
 	}
 
 	public RobotState currentState;
@@ -280,7 +285,7 @@ public class Robot extends TimedRobot {
 
 		// System.out.println("Limit: " + intakeLimit.get());
 		// System.out.println("Navx Yaw:" + navx.getYaw());
-		//System.out.println("Pot: " + pot.get());
+		// System.out.println("Pot: " + pot.get());
 		NetworkTable table = NetworkTableInstance.getDefault().getTable("limelight");
 		NetworkTableEntry tx = table.getEntry("tx");
 		NetworkTableEntry ty = table.getEntry("ty");
@@ -305,7 +310,7 @@ public class Robot extends TimedRobot {
 	}
 
 	public void RobotLoop() {
-		//System.out.println("Pot:  " + pot.get());
+		// System.out.println("Pot: " + pot.get());
 		gearRackBackOne.Write();
 		gearRackBackTwo.Write();
 		gearRackFrontOne.Write();
@@ -315,7 +320,7 @@ public class Robot extends TimedRobot {
 
 		if (currentState == RobotState.Teleop) {
 
-			//System.out.println("WORKING");
+			// System.out.println("WORKING");
 
 			// Climbing
 
@@ -419,7 +424,7 @@ public class Robot extends TimedRobot {
 
 			} else {
 
-				if (flightStickLeft.getRawButton(1) || flightStickRight.getRawButton(1)) {
+				if (flightStickLeft.getRawButton(3) || flightStickRight.getRawButton(3)) {
 					if (ultrasonic.getRangeInches() < 5) {
 						driveTrain.SetBothSpeed(0.08f);
 					} else {
@@ -505,8 +510,9 @@ public class Robot extends TimedRobot {
 					// disbrake manual
 					// TODO delete me
 
-					 if (operator.getRawButtonPressed(2)){ DiskBrakeEnable(); }
-					 
+					if (operator.getRawButtonPressed(2)) {
+						DiskBrakeEnable();
+					}
 
 					// Intake
 					if (operator.getRawButton(1)) {
@@ -609,14 +615,54 @@ public class Robot extends TimedRobot {
 		return output;
 	}
 
+	public float DriveScaleSelector(float ControllerInput, DriveScale selection) {
+		float multiplier = (ControllerInput / (float) Math.abs(ControllerInput));
+		
+		if (selection == DriveScale.parabala) {
+			return multiplier * (float) Math.pow(ControllerInput, 2);
+
+		} else if (selection == DriveScale.tangent) {
+
+			return multiplier * (0.4f * (float) Math.tan(1.8 * (multiplier*ControllerInput) - .9) + 0.5f);
+	
+		} else if (selection == DriveScale.cb) {
+
+			return (float) Math.pow(ControllerInput, 3);
+
+		}  else if (selection == DriveScale.cbrt) {
+
+			return multiplier*(0.63f * (float) Math.cbrt((multiplier*ControllerInput) - 0.5f) + 0.5f);
+
+		} else {
+
+			return ControllerInput;
+
+		}
+	}
+
 	public void ControllerDrive() {
+		
+		if (flightStickLeft.getRawButtonPressed(1) || flightStickRight.getRawButtonPressed(1)) {
+
+			if (halfSpeed == 1) {
+
+				halfSpeed = 0.5f;
+
+			} else {
+
+				halfSpeed = 1;
+
+			}
+
+		}
+		
 		if (arcadeDrive) {
-			float rawH = TranslateController((float) driver.getRawAxis(4));
-			float rawV = TranslateController((float) driver.getRawAxis(1));
+			float rawH = DriveScaleSelector(TranslateController((float) driver.getRawAxis(4)), DriveScale.linear);
+			float rawV = DriveScaleSelector(TranslateController((float) driver.getRawAxis(1)), DriveScale.linear);
 			// Arcade
-			float horJoystick = (rawH/Math.abs(rawH))* (float) Math.pow(rawH, 2); // 0 4
-			float verJoystick = (rawV/Math.abs(rawV))*(rawV*rawV); // 5 1
-			
+			float horJoystick = (rawH / Math.abs(rawH)) * (float) Math.pow(rawH, 2); // 0 4
+			float verJoystick = (rawV / Math.abs(rawV)) * (rawV * rawV); // 5 1
+
 			if (Float.isNaN(horJoystick))
 				horJoystick = 0;
 			if (Float.isNaN(verJoystick))
@@ -624,18 +670,25 @@ public class Robot extends TimedRobot {
 
 			System.out.println(horJoystick + " - " + verJoystick);
 
-			driveTrain.SetRightSpeed(-verJoystick + -horJoystick);
-			driveTrain.SetLeftSpeed(-verJoystick + horJoystick);
+			driveTrain.SetRightSpeed((-verJoystick + -horJoystick) * halfSpeed);
+			driveTrain.SetLeftSpeed((-verJoystick + horJoystick) * halfSpeed);
 			driveTrain.SetCoast();
 		} else {
 			// tank
-			float leftJoystick = ((float) flightStickLeft.getRawAxis(1))*((float) flightStickLeft.getRawAxis(1));
-			float rightJoystick = ((float) flightStickRight.getRawAxis(1))*((float) flightStickRight.getRawAxis(1));
-			//float leftJoystick = TranslateController((float) driver.getRawAxis(1)); // 0 4
-			//float rightJoystick = TranslateController((float) driver.getRawAxis(5)); // 5 1
+			// float leftJoystick = ((float) flightStickLeft.getRawAxis(1))*((float)
+			// flightStickLeft.getRawAxis(1));
+			// float rightJoystick = ((float) flightStickRight.getRawAxis(1))*((float)
+			// flightStickRight.getRawAxis(1));
+			// float leftJoystick = TranslateController((float) driver.getRawAxis(1)); // 0
+			// 4
+			// float rightJoystick = TranslateController((float) driver.getRawAxis(5)); // 5
+			// 1
 
-			driveTrain.SetRightSpeed(-rightJoystick);
-			driveTrain.SetLeftSpeed(-leftJoystick);
+			float leftJoystick = DriveScaleSelector((float) flightStickLeft.getRawAxis(1), DriveScale.linear);
+			float rightJoystick = DriveScaleSelector((float) flightStickRight.getRawAxis(1), DriveScale.linear);
+
+			driveTrain.SetRightSpeed(-rightJoystick * halfSpeed);
+			driveTrain.SetLeftSpeed(-leftJoystick * halfSpeed);
 			driveTrain.SetCoast();
 		}
 	}
@@ -682,8 +735,8 @@ public class Robot extends TimedRobot {
 	}
 
 	public void RunArmControls() {
-		//System.out.println("Lower " + lowerBuffer);
-		//System.out.println("Upper " + upperBuffer);
+		// System.out.println("Lower " + lowerBuffer);
+		// System.out.println("Upper " + upperBuffer);
 
 		if (runArm) {
 			if (!armHold) {
@@ -774,7 +827,7 @@ public class Robot extends TimedRobot {
 		double maxTurnSpeed = 0.35f;
 
 		// approach
-		float approachTargetPlace = 4.7f;//4.7f
+		float approachTargetPlace = 4.7f;// 4.7f
 		float approachTargetPickup = 3.8f;
 		float approachCloseTA = 0.9f;
 		float approachFarTA = 0.162f;
@@ -792,7 +845,7 @@ public class Robot extends TimedRobot {
 			NetworkTableInstance.getDefault().getTable("limelight").getEntry("ledMode").setNumber(3);
 
 			if (value == 0) {
-				//System.out.println("no target");
+				// System.out.println("no target");
 				driveTrain.SetBothSpeed(0.0f);
 
 			} else {
