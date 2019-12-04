@@ -111,7 +111,7 @@ public class Robot extends TimedRobot {
 	}
 
 	public enum DriveScale {
-		linear, parabala, tangent, cb, cbrt, 
+		linear, parabala, tangent, cb, cbrt,
 	}
 
 	public RobotState currentState;
@@ -617,21 +617,21 @@ public class Robot extends TimedRobot {
 
 	public float DriveScaleSelector(float ControllerInput, DriveScale selection) {
 		float multiplier = (ControllerInput / (float) Math.abs(ControllerInput));
-		
+
 		if (selection == DriveScale.parabala) {
 			return multiplier * (float) Math.pow(ControllerInput, 2);
 
 		} else if (selection == DriveScale.tangent) {
 
-			return multiplier * (0.4f * (float) Math.tan(1.8 * (multiplier*ControllerInput) - .9) + 0.5f);
-	
+			return multiplier * (0.4f * (float) Math.tan(1.8 * (multiplier * ControllerInput) - .9) + 0.5f);
+
 		} else if (selection == DriveScale.cb) {
 
 			return (float) Math.pow(ControllerInput, 3);
 
-		}  else if (selection == DriveScale.cbrt) {
+		} else if (selection == DriveScale.cbrt) {
 
-			return multiplier*(0.63f * (float) Math.cbrt((multiplier*ControllerInput) - 0.5f) + 0.5f);
+			return multiplier * (0.63f * (float) Math.cbrt((multiplier * ControllerInput) - 0.5f) + 0.5f);
 
 		} else {
 
@@ -673,7 +673,7 @@ public class Robot extends TimedRobot {
 			driveTrain.SetRightSpeed((-verJoystick + -horJoystick) * halfSpeed);
 			driveTrain.SetLeftSpeed((-verJoystick + horJoystick) * halfSpeed);
 			driveTrain.SetCoast();
-		} else {
+		} /*else {
 			// tank
 			// float leftJoystick = ((float) flightStickLeft.getRawAxis(1))*((float)
 			// flightStickLeft.getRawAxis(1));
@@ -690,8 +690,93 @@ public class Robot extends TimedRobot {
 			driveTrain.SetRightSpeed(-rightJoystick * halfSpeed);
 			driveTrain.SetLeftSpeed(-leftJoystick * halfSpeed);
 			driveTrain.SetCoast();
+		} */else {
+
+				float speedDrive = 0.5f;
+				//float forJoystick = TranslateController((float) flightStickRight.getRawAxis(1)); // 5
+				//float backJoystick = TranslateController((float) flightStickLeft.getRawAxis(4)); // 0
+				boolean moving = false;
+				double forwardX = flightStickRight.getRawAxis(0);
+				double forwardY = flightStickRight.getRawAxis(1);
+				double backwardX = flightStickLeft.getRawAxis(4);
+				double backwardY = flightStickLeft.getRawAxis(5);
+				double ForDriveDir = 0.0;
+				double ForDriveMag = 0.0;
+
+
+				if (forwardX > 0.0){
+					ForDriveDir = (java.lang.Math.atan(forwardY/forwardX) * 57.29578) + 90;
+				} else if (forwardX < 0.0){
+					ForDriveDir = (java.lang.Math.atan(forwardY/forwardX) * 57.29578) - 90;
+				} else {
+					ForDriveDir = 0.0;
+				}
+				ForDriveMag = java.lang.Math.sqrt((forwardX*forwardX) + (forwardY*forwardY));
+				if (ForDriveMag < 0.1) {
+					ForDriveMag = 0.0;
+				}
+				System.out.println("Navx: " + navx.getYaw());
+		
+				if (ForDriveMag == 0){
+					moving = false;
+					driveTrain.SetLeftSpeed((float) ForDriveMag);
+					driveTrain.SetRightSpeed((float) ForDriveMag);
+				} else {
+					double fordiff = (ForDriveDir - navx.getYaw());
+					int fordirection = (int) ((Math.abs(fordiff)) / fordiff);
+					driveTrain.SetLeftSpeed(speedDrive * fordirection);
+					driveTrain.SetRightSpeed(speedDrive * -fordirection);
+
+					moving = true;
+		
+					double forDegreeDifference = Math.abs(navx.getYaw() - ForDriveDir);
+					double goodEnoughDeg = 5;
+					if (forDegreeDifference < goodEnoughDeg) {
+						driveTrain.SetLeftSpeed((float) ForDriveMag);
+						driveTrain.SetRightSpeed((float) ForDriveMag);
+					}
+		
+				// 	if (backwardX > 0.0){
+				// 		BackDriveDir = (java.lang.Math.atan(backwardY/backwardX) * 57.29578) + 90;
+				// 	} else if (backwardX < 0.0){
+				// 		BackDriveDir = (java.lang.Math.atan(backwardY/backwardX) * 57.29578) - 90;
+				// 	} else {
+				// 		BackDriveDir = 0.0;
+				// 	}
+				// 	BackDriveMag = java.lang.Math.sqrt((backwardX*backwardX) + (backwardY*backwardY));
+				// 	if (BackDriveMag < 0.1) {
+				// 		BackDriveMag = 0.0;
+				// 	}
+				// }
+					
+				// 	if (BackDriveMag == 0){
+				// 		moving = false;
+				// 		driveTrain.SetLeftSpeed((float) BackDriveMag);
+				// 		driveTrain.SetRightSpeed((float) BackDriveMag);
+				// 	} else {
+				// 		double backdiff = (BackDriveDir - navx.getYaw());
+				// 		int backdirection = (int) ((Math.abs(backdiff)) / backdiff);
+				// 		driveTrain.SetLeftSpeed(speedDrive * backdirection);
+				// 		driveTrain.SetRightSpeed(speedDrive * -backdirection);
+				// 		//TODO
+				// 		moving = true;
+			
+				// 		double backDegreeDifference = Math.abs(navx.getYaw() - BackDriveDir);
+				// 		double goodEnoughDeg = 5;
+				// 		if (backDegreeDifference < goodEnoughDeg) {
+				// 			driveTrain.SetLeftSpeed((float) BackDriveMag);
+				// 			driveTrain.SetRightSpeed((float) BackDriveMag);
+				// 		}
+				}
+				//driveTrain.SetRightSpeed(-forJoystick + -backJoystick);
+				//driveTrain.SetLeftSpeed(-forJoystick + backJoystick);
+				driveTrain.SetCoast();
+			}
+		
+
 		}
-	}
+
+	
 
 	public void Intake(float speeed) {
 		intakeTop.set(ControlMode.PercentOutput, speeed);
