@@ -691,8 +691,6 @@ public class Robot extends TimedRobot {
 			driveTrain.SetLeftSpeed(-leftJoystick * halfSpeed);
 			driveTrain.SetCoast();
 		} */else {
-
-				float speedDrive = 0.5f;
 				//float forJoystick = TranslateController((float) flightStickRight.getRawAxis(1)); // 5
 				//float backJoystick = TranslateController((float) flightStickLeft.getRawAxis(4)); // 0
 				boolean moving = false;
@@ -703,38 +701,80 @@ public class Robot extends TimedRobot {
 				double ForDriveDir = 0.0;
 				double ForDriveMag = 0.0;
 
+				if (flightStickRight.getRawButtonPressed(7)){
+
+					navx.reset();
+
+				}
 
 				if (forwardX > 0.0){
+
 					ForDriveDir = (java.lang.Math.atan(forwardY/forwardX) * 57.29578) + 90;
+				
 				} else if (forwardX < 0.0){
+					
 					ForDriveDir = (java.lang.Math.atan(forwardY/forwardX) * 57.29578) - 90;
+			
 				} else {
+			
 					ForDriveDir = 0.0;
+			
 				}
+
+				// if (backwardX > 0.0){
+
+				// 	ForDriveDir = (java.lang.Math.atan(backwardY/backwardX) * 57.29578) + 90;
+				
+				// } else if (backwardX < 0.0){
+					
+				// 	ForDriveDir = (java.lang.Math.atan(backwardY/backwardX) * 57.29578) - 90;
+			
+				// } else {
+			
+				// 	ForDriveDir = 0.0;
+			
+				// }
+
 				ForDriveMag = java.lang.Math.sqrt((forwardX*forwardX) + (forwardY*forwardY));
-				if (ForDriveMag < 0.1) {
-					ForDriveMag = 0.0;
-				}
-				System.out.println("Navx: " + navx.getYaw());
-		
-				if (ForDriveMag == 0){
+				// if (ForDriveMag < 0.1) {
+					// ForDriveMag = 0.0;
+				// }
+			//	System.out.println("Navx: " + navx.getYaw());
+			//	System.out.println(ForDriveDir);
+				System.out.println(ForDriveMag);
+			
+				if (ForDriveMag < 0.2){
 					moving = false;
-					driveTrain.SetLeftSpeed((float) ForDriveMag);
-					driveTrain.SetRightSpeed((float) ForDriveMag);
+					driveTrain.SetLeftSpeed((float) 0);
+					driveTrain.SetRightSpeed((float) 0);
 				} else {
 					double fordiff = (ForDriveDir - navx.getYaw());
-					int fordirection = (int) ((Math.abs(fordiff)) / fordiff);
-					driveTrain.SetLeftSpeed(speedDrive * fordirection);
-					driveTrain.SetRightSpeed(speedDrive * -fordirection);
+					System.out.println(fordiff);
+					float fordirection = (float) ((Math.abs(fordiff)) / fordiff);
+					if (Math.abs(fordiff) > 180 ){
+						fordirection = -fordirection;
+					}
+					if (Math.abs(fordiff) < 90){
+						driveTrain.SetLeftSpeed(0.5f * fordirection);
+						driveTrain.SetRightSpeed(0.5f * -fordirection);
 
-					moving = true;
-		
-					double forDegreeDifference = Math.abs(navx.getYaw() - ForDriveDir);
-					double goodEnoughDeg = 5;
+						
+					}else if (Math.abs(fordiff) >= 90){
+						driveTrain.SetLeftSpeed(fordirection);
+						driveTrain.SetRightSpeed(-fordirection);
+					}
+						moving = true;
+			
+						double forDegreeDifference = Math.abs(navx.getYaw() - ForDriveDir);
+						double goodEnoughDeg = 8;
+					
+
 					if (forDegreeDifference < goodEnoughDeg) {
 						driveTrain.SetLeftSpeed((float) ForDriveMag);
 						driveTrain.SetRightSpeed((float) ForDriveMag);
+					
 					}
+					
 		
 				// 	if (backwardX > 0.0){
 				// 		BackDriveDir = (java.lang.Math.atan(backwardY/backwardX) * 57.29578) + 90;
