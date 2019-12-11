@@ -694,13 +694,20 @@ public class Robot extends TimedRobot {
 				//float forJoystick = TranslateController((float) flightStickRight.getRawAxis(1)); // 5
 				//float backJoystick = TranslateController((float) flightStickLeft.getRawAxis(4)); // 0
 				boolean moving = false;
+				boolean backwards = false;
 				double forwardX = flightStickRight.getRawAxis(0);
 				double forwardY = flightStickRight.getRawAxis(1);
-				double backwardX = flightStickLeft.getRawAxis(4);
-				double backwardY = flightStickLeft.getRawAxis(5);
+			//	double backwardX = flightStickLeft.getRawAxis(4);
+			//	double backwardY = flightStickLeft.getRawAxis(5);
 				double ForDriveDir = 0.0;
 				double ForDriveMag = 0.0;
 
+				if (flightStickRight.getRawButtonPressed(1)){
+
+					backwards = !backwards;
+
+				}
+				
 				if (flightStickRight.getRawButtonPressed(7)){
 
 					navx.reset();
@@ -721,20 +728,6 @@ public class Robot extends TimedRobot {
 			
 				}
 
-				// if (backwardX > 0.0){
-
-				// 	ForDriveDir = (java.lang.Math.atan(backwardY/backwardX) * 57.29578) + 90;
-				
-				// } else if (backwardX < 0.0){
-					
-				// 	ForDriveDir = (java.lang.Math.atan(backwardY/backwardX) * 57.29578) - 90;
-			
-				// } else {
-			
-				// 	ForDriveDir = 0.0;
-			
-				// }
-
 				ForDriveMag = java.lang.Math.sqrt((forwardX*forwardX) + (forwardY*forwardY));
 				// if (ForDriveMag < 0.1) {
 					// ForDriveMag = 0.0;
@@ -751,9 +744,24 @@ public class Robot extends TimedRobot {
 					double fordiff = (ForDriveDir - navx.getYaw());
 					System.out.println(fordiff);
 					float fordirection = (float) ((Math.abs(fordiff)) / fordiff);
+
+					// if (backwards){
+
+					// 	fordirection = -fordirection;
+
+					// }
+
 					if (Math.abs(fordiff) > 180 ){
 						fordirection = -fordirection;
 					}
+
+					if (backwards){
+
+						fordirection = -fordirection;
+						ForDriveMag = -ForDriveMag;
+
+					}
+
 					if (Math.abs(fordiff) < 90){
 						driveTrain.SetLeftSpeed(0.5f * fordirection);
 						driveTrain.SetRightSpeed(0.5f * -fordirection);
